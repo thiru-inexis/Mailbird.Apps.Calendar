@@ -1,0 +1,168 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:Mailbird.Apps.Calendar.UIResources.Converters"
+                    xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                    xmlns:drawing="http://schemas.devexpress.com/winfx/2008/xaml/scheduler/internal">
+    
+    <converters:ListItemToViewTypeConverter x:Key="ListItemToViewTypeConverter"/>
+    
+    <converters:InvertBoolValueConverter x:Key="InvertBoolValueConverter"/>
+    
+    <converters:ColorToRGBStringConverter x:Key="ToRgbStringConverter"/>
+    
+    <Style x:Key="SelectorViewStyle" 
+           TargetType="ListBox">
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border CornerRadius="3" 
+                            BorderBrush="DarkGray" 
+                            BorderThickness="1">
+                        
+                        <ItemsPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Width"
+                            Value="80"/>
+                    
+                    <Setter Property="Height"
+                            Value="25"/>
+                    
+                    <Setter Property="Padding" 
+                            Value="3,0"/>
+                    
+                    <Setter Property="HorizontalContentAlignment" 
+                            Value="Center"/>
+                    
+                    <Setter Property="FontFamily" 
+                            Value="Arial"/>
+                    
+                    <Setter Property="FontWeight"
+                            Value="Bold"/>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <Style x:Key="RoundedButton" 
+           TargetType="{x:Type Button}">
+        <Setter Property="Background"
+                Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+        
+        <Setter Property="Foreground" 
+                Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+        
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="{TemplateBinding Background}" 
+                            CornerRadius="2" 
+                            x:Name="border" 
+                            BorderThickness="1" 
+                            BorderBrush="Gray" 
+                            UseLayoutRounding="True">
+                        <ContentPresenter VerticalAlignment="Center" 
+                                          HorizontalAlignment="Center" 
+                                          x:Name="contentPresenter"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled"
+                                 Value="False">
+                            <Setter Property="Opacity" 
+                                    TargetName="border" 
+                                    Value="0.5"/>
+                            
+                            <Setter Property="Opacity" 
+                                    TargetName="border"
+                                    Value="0.5"/>
+                            
+                            <Setter Property="Opacity" 
+                                    TargetName="contentPresenter" 
+                                    Value="0.5"/>
+                        </Trigger>
+                        
+                        <Trigger Property="IsPressed" 
+                                 Value="True">
+                            <Setter Property="RenderTransform" 
+                                    TargetName="border">
+                                <Setter.Value>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="0.95" 
+                                                        ScaleY="0.95"/>
+                                    </TransformGroup>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        
+                        <Trigger Property="IsMouseOver" 
+                                 Value="True">
+                            <Setter Property="Background"
+                                    Value="LightGray"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <Style x:Key="DateSelectorStyle" 
+           TargetType="dxe:DateEdit">
+        <Setter Property="Margin" 
+                Value="3"/>
+        
+        <Setter Property="ShowBorder" 
+                Value="False"/>
+        
+        <Setter Property="AllowNullInput"
+                Value="False"/>
+        
+        <Setter Property="AllowDefaultButton" 
+                Value="False"/>
+        
+        <Setter Property="FontFamily" 
+                Value="Arial Black"/>
+        
+        <Setter Property="FontSize" 
+                Value="16"/>
+        
+        <Setter Property="Foreground" 
+                Value="Gray"/>
+        
+        <Setter Property="IsTextEditable" 
+                Value="False"/>
+        
+        <Setter Property="UseLayoutRounding" 
+                Value="True"/>
+        
+        <Setter Property="MaskUseAsDisplayFormat"
+                Value="True"/>
+    </Style>
+    
+    <drawing:TimeSpanToDateTimeConverter x:Key="TimeSpanToDateTimeConverter"/>
+    
+    <drawing:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
+    
+    <Style x:Key="LabelStyle" 
+           TargetType="TextBlock">
+        <Setter Property="VerticalAlignment" 
+                Value="Center"/>
+        
+        <Setter Property="HorizontalAlignment" 
+                Value="Left"/>
+    </Style>
+    
+</ResourceDictionary>
