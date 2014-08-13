@@ -167,7 +167,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
         {
             // update event on context, if success update vm
             var updatedAppointment = _calendarsCatalog.UpdateAppointment(appointment);
-            if (updatedAppointment == null)
+            if (updatedAppointment != null)
             {
                 var appointmentToUpdate = _appointments[appointmentId];
                 _appointments[appointmentId] = updatedAppointment;
@@ -181,8 +181,11 @@ namespace Mailbird.Apps.Calendar.ViewModels
             var response = _calendarsCatalog.RemoveAppointment(_appointments[appintmentId]);
             if (response == true)
             {
-                _appointments.Remove(appintmentId);
-                AppointmentCollection.Remove(_appointments[appintmentId]);
+                if (_appointments.ContainsKey(appintmentId))
+                {
+                    AppointmentCollection.Remove(_appointments[appintmentId]);
+                    _appointments.Remove(appintmentId); 
+                }
             }
         }
 
