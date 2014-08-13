@@ -119,6 +119,7 @@
     <Compile Include="CalendarProviders\GoogleCalendarProvider.cs" />
     <Compile Include="CalendarProviders\LocalCalendarProvider.cs" />
     <Compile Include="CalendarsCatalog.cs" />
+    <Compile Include="Extensions\CloneExtension.cs" />
     <Compile Include="Interfaces\ICalendarProvider.cs" />
     <Compile Include="Metadata\Appointment.cs" />
     <Compile Include="Metadata\Calendar.cs" />

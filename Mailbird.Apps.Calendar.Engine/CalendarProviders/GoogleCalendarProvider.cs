@@ -10,6 +10,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
+using Mailbird.Apps.Calendar.Engine.Extensions; 
 
 namespace Mailbird.Apps.Calendar.Engine.CalendarProviders
 {
@@ -81,39 +82,20 @@ namespace Mailbird.Apps.Calendar.Engine.CalendarProviders
 
         public IEnumerable<Appointment> GetAppointments(string calendarId)
         {
+            var calender = GetCalendars().FirstOrDefault(m => (m.CalendarId == calendarId));
             var calendarEvents = _calendarService.Events.List(calendarId).Execute().Items;
-
-            var list = calendarEvents.Select(a => new Appointment
-            {
-                Id = a.Id,
-                StartTime = (a.Start != null && a.Start.DateTime.HasValue) ? a.Start.DateTime.Value : DateTime.Now,
-                EndTime = (a.End != null && a.End.DateTime.HasValue) ? a.End.DateTime.Value : DateTime.Now,
-                Subject = a.Summary,
-                Description = a.Description,
-                Location = a.Location
-            });
-
+            var list = calendarEvents.Select(a => a.Clone(calender));
             return list;
         }
 
-        public bool InsertAppointment(Appointment appointment)
+        public Appointment InsertAppointment(Appointment appointment)
         {
-            var googleEvent = new Event
-            {
-                Start = new EventDateTime
-                {
-                    DateTime = appointment.StartTime
-                },
-                End = new EventDateTime { DateTime = appointment.EndTime },
-                Summary = appointment.Subject,
-                Description = appointment.Description,
-                Location = appointment.Location
-            };
-            _calendarService.Events.Insert(googleEvent, appointment.Calendar.CalendarId).Execute();
-            return true;
+            var googleEvent = appointment.Clone();
+            var eventReponse = _calendarService.Events.Insert(googleEvent, appointment.Calendar.CalendarId).Execute();
+            return eventReponse.Clone(appointment.Calendar);
         }
 
-        public bool UpdateAppointment(Appointment appointment)
+        public Appointment UpdateAppointment(Appointment appointment)
         {
             var googleEvent = _calendarService.Events.Get(appointment.Calendar.CalendarId, appointment.Id.ToString()).Execute();
             googleEvent.Start.DateTime = appointment.StartTime;
@@ -121,14 +103,18 @@ namespace Mailbird.Apps.Calendar.Engine.CalendarProviders
             googleEvent.Summary = appointment.Subject;
             googleEvent.Description = appointment.Description;
             googleEvent.Location = appointment.Location;
-            _calendarService.Events.Update(googleEvent, appointment.Calendar.CalendarId, googleEvent.Id);
-            return true;
+
+            var eventReponse = _calendarService.Events.Update(googleEvent, appointment.Calendar.CalendarId, googleEvent.Id).Execute();
+            return eventReponse.Clone(appointment.Calendar) ;
         }
+
 
         public bool RemoveAppointment(Appointment appointment)
         {
-            _calendarService.Events.Delete(appointment.Calendar.CalendarId, appointment.Id.ToString());
-            return true;
+            // As per the google spec, the service would return an 
+            // empty string if the deletion was success.
+            var eventReponse = _calendarService.Events.Delete(appointment.Calendar.CalendarId, appointment.Id.ToString()).Execute();
+            return (string.IsNullOrEmpty(eventReponse));
         }
     }
 }

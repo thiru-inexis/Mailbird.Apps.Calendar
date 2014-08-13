@@ -42,12 +42,12 @@ namespace Mailbird.Apps.Calendar.Engine
             return _calendarProviders.Values.SelectMany(calendarProvider => calendarProvider.GetAppointments());
         }
 
-        public bool InsertAppointment(Appointment appointment)
+        public Appointment InsertAppointment(Appointment appointment)
         {
             return _calendarProviders[appointment.Calendar.Provider].InsertAppointment(appointment);
         }
 
-        public bool UpdateAppointment(Appointment appointment)
+        public Appointment UpdateAppointment(Appointment appointment)
         {
             return _calendarProviders[appointment.Calendar.Provider].UpdateAppointment(appointment);
         }

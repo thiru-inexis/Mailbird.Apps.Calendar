@@ -30,25 +30,26 @@ namespace Mailbird.Apps.Calendar.Engine.Interfaces
         IEnumerable<Appointment> GetAppointments(string calendarId);
 
 
+
         /// <summary>
         /// insert appointment into storage
         /// </summary>
         /// <param name="appointment">appointment to insert</param>
-        /// <returns></returns>
-        bool InsertAppointment(Appointment appointment);
+        /// <returns>The newly added appointment, If failed value will be null</returns>
+        Appointment InsertAppointment(Appointment appointment);
 
         /// <summary>
         /// upadte existed appointment
         /// </summary>
         /// <param name="appointment">appointmnt to update</param>
-        /// <returns></returns>
-        bool UpdateAppointment(Appointment appointment);
+        /// <returns>The updated appointment, If failed value will be null</returns>
+        Appointment UpdateAppointment(Appointment appointment);
 
         /// <summary>
         /// remove appointment
         /// </summary>
         /// <param name="appointment">appointment to remove</param>
-        /// <returns></returns>
+        ///// <returns>True is success, else False.</returns>
         bool RemoveAppointment(Appointment appointment);
     }
 }

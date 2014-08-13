@@ -151,29 +151,39 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         public void AddAppointment(Appointment appointment)
         {
-            AppointmentCollection.Add(appointment);
-            if (appointment.Id == null || _appointments.ContainsKey(appointment.Id))
-                appointment.Id = Guid.NewGuid();
-            if (appointment.Calendar == null)
-                appointment.Calendar = _calendarsCatalog.DefaultCalendar;
-            _appointments.Add(appointment.Id, appointment);
-            _calendarsCatalog.InsertAppointment(appointment);
+            // Add event to context, if success update vm, else ignore
+            if (appointment.Id == null || _appointments.ContainsKey(appointment.Id)) { appointment.Id = Guid.NewGuid(); }
+            if (appointment.Calendar == null) { appointment.Calendar = _calendarsCatalog.DefaultCalendar; }
+                
+            var addedAppointment = _calendarsCatalog.InsertAppointment(appointment);
+            if (addedAppointment != null)
+            {
+                _appointments.Add(addedAppointment.Id, addedAppointment);
+                AppointmentCollection.Add(addedAppointment);
+            }
         }
 
         public void UpdateAppointment(object appointmentId, Appointment appointment)
         {
-            var appointmentToUpdate = _appointments[appointmentId];
-            AppointmentCollection.Remove(appointmentToUpdate);
-            AppointmentCollection.Add(appointment);
-            _appointments[appointmentId] = appointment;
-            _calendarsCatalog.UpdateAppointment(appointment);
+            // update event on context, if success update vm
+            var updatedAppointment = _calendarsCatalog.UpdateAppointment(appointment);
+            if (updatedAppointment == null)
+            {
+                var appointmentToUpdate = _appointments[appointmentId];
+                _appointments[appointmentId] = updatedAppointment;
+                AppointmentCollection.Remove(appointmentToUpdate);
+                AppointmentCollection.Add(updatedAppointment);           
+            }
         }
 
         public void RemoveAppointment(object appintmentId)
         {
-            AppointmentCollection.Remove(_appointments[appintmentId]);
-            _calendarsCatalog.RemoveAppointment(_appointments[appintmentId]);
-            _appointments.Remove(appintmentId);
+            var response = _calendarsCatalog.RemoveAppointment(_appointments[appintmentId]);
+            if (response == true)
+            {
+                _appointments.Remove(appintmentId);
+                AppointmentCollection.Remove(_appointments[appintmentId]);
+            }
         }
 
         public void AppointmentOnViewChanged(Appointment appointment)

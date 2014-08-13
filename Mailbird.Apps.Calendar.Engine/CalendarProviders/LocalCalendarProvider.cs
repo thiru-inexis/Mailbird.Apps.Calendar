@@ -52,21 +52,21 @@ namespace Mailbird.Apps.Calendar.Engine.CalendarProviders
             return _calendarsEvents;
         }
 
-        public bool InsertAppointment(Appointment appointment)
+        public Appointment InsertAppointment(Appointment appointment)
         {
             _calendarsEvents.Add(appointment);
             _worker.SaveData(appointment);
-            return true;
+            return appointment; // for testing
         }
 
-        public bool UpdateAppointment(Appointment appointment)
+        public Appointment UpdateAppointment(Appointment appointment)
         {
-            return true;
+            return appointment; // for testing
         }
 
         public bool RemoveAppointment(Appointment appointment)
         {
-            return true;
+            return true; // for testing
         }
     }
 }
