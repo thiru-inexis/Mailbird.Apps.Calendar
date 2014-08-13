@@ -9,11 +9,21 @@ using System.Collections.Generic;
 ﻿using Mailbird.Apps.Calendar.Engine.Interfaces;
 ﻿using Mailbird.Apps.Calendar.Engine.Metadata;
 ﻿using Mailbird.Apps.Calendar.Infrastructure;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace Mailbird.Apps.Calendar.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        #region Constants
+
+        private const int APPOINTMENT_SYNC_PERIOD = 1 * 60 * 1000;
+
+        #endregion
+
+
         #region PrivateProps
 
         private readonly Dictionary<object, Appointment> _appointments = new Dictionary<object, Appointment>();
@@ -21,6 +31,8 @@ namespace Mailbird.Apps.Calendar.ViewModels
         private readonly CalendarsCatalog _calendarsCatalog = new CalendarsCatalog();
 
         private readonly ObservableCollection<TreeData> _treeData = new ObservableCollection<TreeData>();
+
+        private CancellationTokenSource _syncCts = new CancellationTokenSource();
 
         #endregion PrivateProps
 
@@ -39,28 +51,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         public MainWindowViewModel()
         {
-            AppointmentCollection = new ObservableCollection<Appointment>(_calendarsCatalog.GetCalendarAppointments());
-            foreach (var provider in _calendarsCatalog.GetProviders)
-            {
-                AddElementToTree(provider);
-                foreach (var calendar in provider.GetCalendars())
-                {
-                    AddElementToTree(calendar);
-                }
-            }
-            var appointmentList = _calendarsCatalog.GetCalendarAppointments().ToList();
-            AppointmentCollection = new ObservableCollection<Appointment>(appointmentList);
-
-            foreach (var a in appointmentList)
-            {
-                // Make sure we don't get any duplicates
-                if (!_appointments.ContainsKey(a.Id))
-                    _appointments.Add(a.Id, a);
-            }
-
-            var calendars = _calendarsCatalog.GetCalendars();
-
-            calendars.ToArray();
+            AppointmentCollection = new ObservableCollection<Appointment>();
 
             FlyoutViewModel = new FlyoutViewModel
             {
@@ -68,7 +59,95 @@ namespace Mailbird.Apps.Calendar.ViewModels
                 UpdateAppointmentAction = UpdateAppointment,
                 RemoveAppointmentAction = RemoveAppointment
             };
+
+            var providers = _calendarsCatalog.GetProviders;
+            foreach (var provider in providers)
+            {
+                AddElementToTree(provider);
+                var calenders = provider.GetCalendars();
+                foreach (var calendar in calenders)
+                {
+                    AddElementToTree(calendar);
+                }
+            }
+
+            // Start Async appointment sync
+            AsyncSync();
         }
+
+
+
+        #region Synchronization
+
+        /// <summary>
+        /// Cancel an ongoing appointment sync
+        /// </summary>
+        public void CancelAsyncSync()
+        {
+            if (_syncCts != null) { _syncCts.Cancel(); }
+        }
+
+
+        /// <summary>
+        /// Asynchronous appointment sync
+        /// </summary>
+        public void AsyncSync()
+        {
+            try
+            {
+                if (_syncCts == null) { _syncCts = new CancellationTokenSource(); }
+                var cancelToken = _syncCts.Token;
+
+
+                Task.Factory.StartNew(()=>
+                {
+                    while (true)
+                    {
+                        cancelToken.ThrowIfCancellationRequested();
+
+                        //If any exceptions are throen from the sync, suppress them
+                        try
+                        {
+                            Sync();
+                        }
+                        catch { }
+
+                        Thread.Sleep(APPOINTMENT_SYNC_PERIOD);
+                    }
+                }, cancelToken);
+            }
+            catch (Exception exp)
+            {
+                System.Diagnostics.Debug.WriteLine(exp.ToString());
+            }
+        }
+
+
+        /// <summary>
+        /// To Do on Sync
+        /// </summary>
+        public void Sync()
+        {
+            // Add new appointments if, appointment id is not already in list
+            var appointments = _calendarsCatalog.GetCalendarAppointments();
+            foreach (var appointment in appointments)
+            {
+                if (!_appointments.ContainsKey(appointment.Id))
+                {
+                    _appointments.Add(appointment.Id, appointment);
+
+                    Action<Appointment> addMethod = AppointmentCollection.Add;
+                    Application.Current.Dispatcher.BeginInvoke(addMethod, appointment);
+                    RaisePropertyChanged(() => AppointmentCollection);
+                }
+            }
+            // For later use
+            var calendars = _calendarsCatalog.GetCalendars();
+        }
+
+
+        #endregion
+
 
         public void AddAppointment(Appointment appointment)
         {
