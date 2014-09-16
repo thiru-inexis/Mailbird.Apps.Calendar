@@ -9,73 +9,62 @@ namespace Mailbird.Apps.Calendar.Engine.Utility
     /// <summary>
     /// SImple class to serialize/deserialize objects to json format to store for future load local calendars events
     /// </summary>
-    public class JsonWorker
+    public class JsonWorker<T> where T : class
     {
         private readonly string _filePath;
 
         public JsonWorker(string filePath)
         {
             _filePath = filePath;
-        }
-        
-        public T DeserializeJson<T>(string json)
-        {
-            try
-            {
-                return JsonConvert.DeserializeObject<T>(json);
-            }
-            catch (Exception)
-            {
-                throw new Exception();
+
+            if (!File.Exists(filePath)) 
+            {  
+                Write(Activator.CreateInstance<T>());
             }
         }
 
-        public void SaveData<T>(T obj)
+
+        public string Searialize(T data)
         {
-            var json = JsonConvert.SerializeObject(obj);
-            using (var stream = new StreamWriter(_filePath, true))
-            {
-               stream.WriteLine(json);
-            }
+            return JsonConvert.SerializeObject(data, Formatting.Indented);
         }
 
-        public List<T> GetData<T>()
+
+        public T Desearialize(string data)
         {
-            if(!File.Exists(_filePath)) return new List<T>();
-            var jsonObjects = new List<string>();
-            using (var reader = new StreamReader(_filePath)) //path
+            return JsonConvert.DeserializeObject<T>(data);
+        }
+
+
+        public void Write(T data)
+        {
+            using (FileStream fStream = new FileStream(_filePath, FileMode.OpenOrCreate))
             {
-                var text = reader.ReadToEnd();
-                var array = text.ToCharArray();
-                var isStartPoint = false;
-                var startIndex = 0;
-                var opened = 0;
-                var closed = 0;
-                for (var i = 0; i < array.Length; i++)
+                using (StreamWriter wStream = new StreamWriter(fStream))
                 {
-                    if (array[i] == '{')
-                    {
-                        if (isStartPoint == false)
-                        {
-                            isStartPoint = true;
-                            startIndex = i;
-                        }
-                        opened++;
-                    }
-                    if (array[i] == '}')
-                    {
-                        closed++;
-                        if (opened != closed) continue;
-                        var obj = text.Substring(startIndex, i-startIndex + 1);
-                        jsonObjects.Add(obj);
-                        isStartPoint = false;
-                        startIndex = 0;
-                        opened = 0;
-                        closed = 0;
-                    }
+                    wStream.Write(Searialize(data));
                 }
             }
-            return jsonObjects.Select(DeserializeJson<T>).ToList();
+
+            //File.WriteAllText(_filePath, Searialize(data));
         }
+
+
+        public T Read()
+        {
+            T result = null;
+
+            using (FileStream fStream = new FileStream(_filePath, FileMode.OpenOrCreate))
+            {
+                using (StreamReader rStream = new StreamReader(fStream))
+                {
+                    result = Desearialize(rStream.ReadToEnd());
+                }
+            }
+
+            return result;
+        }
+
+
     }
 }

@@ -58,7 +58,7 @@ namespace Mailbird.Apps.Calendar.Engine.CalendarProviders
                 CalendarId = c.Id,
                 Name = c.Summary,
                 Description = c.Description,
-                AccessRights = c.AccessRole == "reader" ? Metadata.Calendar.Access.Read : Metadata.Calendar.Access.Write,
+                AccessRights = c.AccessRole == "reader" ? Metadata.Calendar.Access.Write : Metadata.Calendar.Access.Write,
                 CalendarColor = (Color)ColorConverter.ConvertFromString(c.BackgroundColor),
                 Provider = "GoogleCalendarsStorage"
             });

@@ -4,14 +4,14 @@ using System.Windows.Data;
 
 namespace Mailbird.Apps.Calendar.UIResources.Converters
 {
-    public class InvertBoolValueConverter : IValueConverter
+    public class InvertBoolValueConverter : ChainedConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return !(bool)value;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public override object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return !(bool)value;
         }

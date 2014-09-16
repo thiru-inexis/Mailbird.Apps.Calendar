@@ -48,7 +48,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         private TreeData _selectedTreeItem;
 
-        private Mailbird.Apps.Calendar.Engine.Metadata.Calendar _selectedCalendar;
+        private Mailbird.Apps.Calendar.Engine.Metadata.CalendarList _selectedCalendar;
 
         private KeyValuePair<int, string> _selectedReminder;
 
@@ -92,7 +92,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
             {
                 var appointment = new Mailbird.Apps.Calendar.Engine.Metadata.Appointment
                 {
-                    Id = CurrentAppointmentId,
+                    Id = CurrentAppointmentId.ToString(),
                     Subject = Subject,
                     Location = Location,
                     StartTime = StartDate.Date + (AllDayEvent ? DateTime.Parse(DefaultTimeValue).TimeOfDay : DateTime.Parse(StartTime).TimeOfDay),
@@ -102,7 +102,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
                     Description = Description,
                     StatusId = StatusId,
                     //ResourceId = ResourceId,
-                    Calendar = SelectedCalendar
+                    CalendarId = SelectedCalendar.Id
                 };
                 appointment.ReminderInfo = GetReminderInfo(appointment);
                 UpdateAppointmentAction(CurrentAppointmentId, appointment);
@@ -111,7 +111,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
             {
                 var appointment = new Mailbird.Apps.Calendar.Engine.Metadata.Appointment
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.NewGuid().ToString(),
                     Subject = Subject,
                     Location = Location,
                     StartTime = StartDate.Date + (AllDayEvent ? DateTime.Parse(DefaultTimeValue).TimeOfDay : DateTime.Parse(StartTime).TimeOfDay),
@@ -121,7 +121,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
                     Description = Description,
                     StatusId = StatusId,
                     //ResourceId = ResourceId,
-                    Calendar = SelectedCalendar
+                    CalendarId = SelectedCalendar.Id
                 };
                 appointment.ReminderInfo = GetReminderInfo(appointment);
                 AddAppointmentAction(appointment);
@@ -228,14 +228,16 @@ namespace Mailbird.Apps.Calendar.ViewModels
                 if (SetValue(ref _selectedTreeItem, value, () => SelectedTreeItem))
                 {
                     if (value != null)
-                        _selectedCalendar = value.Data as Mailbird.Apps.Calendar.Engine.Metadata.Calendar;
+                        _selectedCalendar = value.Data as Mailbird.Apps.Calendar.Engine.Metadata.CalendarList;
                 }
             }
         }
 
-        public Mailbird.Apps.Calendar.Engine.Metadata.Calendar SelectedCalendar
+        public Mailbird.Apps.Calendar.Engine.Metadata.CalendarList SelectedCalendar
         {
-            get { return _selectedCalendar ?? new Mailbird.Apps.Calendar.Engine.Metadata.Calendar() { CalendarId = Guid.NewGuid().ToString(), Provider = "LocalCalendarsStorage", Name = "LocalCalendar" }; }
+            //get { return _selectedCalendar ?? new Mailbird.Apps.Calendar.Engine.Metadata.CalendarList() { Id = Guid.NewGuid().ToString(), Provider = "LocalCalendarsStorage", Name = "LocalCalendar" }; }
+            get { return _selectedCalendar ?? new Mailbird.Apps.Calendar.Engine.Metadata.CalendarList() { Id = Guid.NewGuid().ToString()}; }
+           
             set
             {
                 if (SetValue(ref _selectedCalendar, value, () => SelectedCalendar))
@@ -243,8 +245,8 @@ namespace Mailbird.Apps.Calendar.ViewModels
                     {
                         Data = value,
                         DataType = TreeDataType.Calendar,
-                        Name = value.Name,
-                        ParentID = value.Provider
+                        //Name = value.Name,
+                        //ParentID = value.Provider
                     };
                 RaisePropertyChanged(() => SelectedTreeItem);
             }
@@ -390,7 +392,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
                 SelectedReminder = ReminderCollection[0];
             }
             Appointment = appointment;
-            SelectedCalendar = appointment.CustomFields["cfCalendar"] as Mailbird.Apps.Calendar.Engine.Metadata.Calendar;
+            SelectedCalendar = appointment.CustomFields["cfCalendar"] as Mailbird.Apps.Calendar.Engine.Metadata.CalendarList;
         }
 
         private bool CheckOnEdit()

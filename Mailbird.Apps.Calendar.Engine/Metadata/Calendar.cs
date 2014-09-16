@@ -1,26 +1,26 @@
-﻿using System.Windows.Media;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace Mailbird.Apps.Calendar.Engine.Metadata
 {
-    public class Calendar
+    public class Calendar: LocalStorageData
     {
-        public Access AccessRights { get; set; }
-
-        public string CalendarId { get; set; }
-
-        public Color CalendarColor { get; set; }
-
-        public string Name { get; set; }
-
+        public string Kind { get; set; }
+        public string Etag { get; set; }
+        public string Summary { get; set; }
         public string Description { get; set; }
+        public string Location { get; set; }
+        public string TimeZone { get; set; }
+        public CalendarList CalenderList { get; set; }
 
-        public string Provider { get; set; }
 
-        public enum Access
+        public Calendar()
         {
-            Write,
-
-            Read
+            this.CalenderList = null;
         }
     }
+
+
 }

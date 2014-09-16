@@ -8,20 +8,20 @@ namespace Mailbird.Apps.Calendar.Engine.CalendarProviders
 {
     public class LocalCalendarProvider : ICalendarProvider
     {
-        private const string LocalStoragePath = @"C:\LocalStorage2.txt";
+        private const string LocalStoragePath = @".\LocalStorage2.txt";
 
         private readonly List<Metadata.Calendar> _calendars = new List<Metadata.Calendar>();
 
         private readonly List<Appointment> _calendarsEvents = new List<Appointment>();
 
-        private readonly JsonWorker _worker;
+        private readonly JsonWorker<DataStore> _worker;
 
         public string Name { get; private set; }
 
         public LocalCalendarProvider()
         {
             Name = "LocalCalendarsStorage";
-            _worker = new JsonWorker(LocalStoragePath);
+            _worker = new JsonWorker<DataStore>(LocalStoragePath);
             LoadCalendars();
         }
 

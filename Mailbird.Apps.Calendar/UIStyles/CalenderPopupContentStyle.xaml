@@ -1,0 +1,152 @@
+﻿<dx:DXWindow x:Class="Mailbird.Apps.Calendar.UIStyles.CalenderPopupContentStyle"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+                xmlns:viewModels="clr-namespace:Mailbird.Apps.Calendar.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+              xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+             xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+             mc:Ignorable="d" Height="315" Width="400" Title="{Binding Title}" ResizeMode="NoResize"  
+             dx:ThemeManager.ThemeName="MetropolisLight">
+
+
+    <dx:DXWindow.DataContext>
+        <viewModels:CalenderPopupViewModel/>
+    </dx:DXWindow.DataContext>
+
+    <dx:DXWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="EditorStyles.xaml"/>
+                <ResourceDictionary Source="GeneralStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </dx:DXWindow.Resources>
+
+
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" Tag="Input Controls"/>
+            <RowDefinition Height="auto" Tag="Action Buttons"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0" >
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" Tag="Labels"/>
+                <ColumnDefinition Width="*" Tag="Controls"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*" Tag="Name/Summary"/>
+                <RowDefinition Height="2*" Tag="Description"/>
+                <RowDefinition Height="1*" Tag="Location"/>
+                <RowDefinition Height="1*" Tag="TimeZone"/>
+                <RowDefinition Height="1*" Tag="Background Color"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" 
+                           Margin="0 5 5 5" VerticalAlignment="Top"
+                           Text="Name: " Style="{StaticResource ResourceKey=LabelStyle}"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" 
+                           Padding="3" Margin="0 5 5 5" VerticalAlignment="Top"
+                           Text="Description: "  Style="{StaticResource ResourceKey=LabelStyle}"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" 
+                           Padding="3" Margin="0 5 5 5" VerticalAlignment="Top"
+                           Text="Location: "  Style="{StaticResource ResourceKey=LabelStyle}"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" 
+                           Padding="3" Margin="0 5 5 5" VerticalAlignment="Top"
+                           Text="Time Zone: "  Style="{StaticResource ResourceKey=LabelStyle}"/>
+            <TextBlock Grid.Row="4" Grid.Column="0" 
+                           Padding="3" Margin="0 5 5 5" VerticalAlignment="Top"
+                           Text="Color: "  Style="{StaticResource ResourceKey=LabelStyle}"/>
+
+            <dxe:TextEdit Grid.Row="0" Grid.Column="1"
+                          Margin="5 5 0 5"
+                          EditValue="{Binding Summary, Mode=TwoWay}" />
+            <dxe:TextEdit Grid.Row="1" Grid.Column="1"
+                          Margin="5 5 0 5"
+                          EditValue="{Binding Description, Mode=TwoWay}"
+                          TextWrapping="Wrap" AcceptsReturn="True" 
+                          VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
+            <dxe:TextEdit Grid.Row="2" Grid.Column="1"
+                          Margin="5 5 0 5"
+                          EditValue="{Binding Location, Mode=TwoWay}" />
+
+            <dxe:ComboBoxEdit Grid.Row="3" Grid.Column="1" 
+                              Margin="5 5 0 5" HorizontalAlignment="Stretch"
+                              IsTextEditable="False" 
+                              EditValue="{Binding RelativeSource={x:Static RelativeSource.Self}, Mode=OneWay, Path=SelectedItem.DisplayName}"
+                              ItemsSource="{Binding Path=AvailableTimeZones}"
+                              SelectedItem="{Binding Path=SelectedTimeZone}">
+                <dxe:ComboBoxEdit.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DisplayName}"
+                                   HorizontalAlignment="Center"/>
+                    </DataTemplate>
+                </dxe:ComboBoxEdit.ItemTemplate>
+            </dxe:ComboBoxEdit>
+            <dxe:PopupColorEdit Grid.Row="4" Grid.Column="1"
+                            Margin="5 5 0 5"
+                              EditValue="{Binding BackgroundColor, Mode=TwoWay, Converter={StaticResource WebColorToColorConverter}}" />
+
+        </Grid>
+
+
+        <Grid Grid.Row="1" Margin="0 20 0 0" Height="25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" Tag="Add/Update Button"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto" Tag="Delete Button"/>
+            </Grid.ColumnDefinitions>
+            <!--onverter={StaticResource ToRgbStringConverter}}-->
+            <Button HorizontalAlignment="Left" Grid.Column="0" 
+                    Padding="20 3" Margin="0 0 10 0" 
+                    Content="Save" ToolTip="Save (Add new Calender)"
+                    Command="{Binding InsertUICommand}" 
+                    Visibility="{Binding Path=InsertUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
+            <Button HorizontalAlignment="left" Grid.Column="0" 
+                    Padding="20 3" Margin="0 0 10 0" 
+                    Content="Save" ToolTip="Save (Update Calender)"
+                    Command="{Binding UpdateUICommand}"
+                    Visibility="{Binding Path=UpdateUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
+            <Button HorizontalAlignment="Right" Grid.Column="1" 
+                    Padding="20 3" Margin="10 0 0 0" Content="Delete" 
+                    Command="{Binding DeleteUICommand}" 
+                    Visibility="{Binding Path=DeleteUICommand, Converter={StaticResource ObjToVisibilityConverter}}"
+                    Template="{StaticResource DeleteIcon}"/>
+        </Grid>
+
+        <!--<Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" Tag="Delete Button"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto" Tag="Add/Update Button"/>
+                <ColumnDefinition Width="auto" Tag="Cancel Button"/>
+            </Grid.ColumnDefinitions>
+            -->
+        <!--onverter={StaticResource ToRgbStringConverter}}-->
+        <!--
+            <Button HorizontalAlignment="Left" Grid.Column="0" 
+                    Padding="20 3" Content="Delete" 
+                    Command="{Binding DeleteUICommand}" 
+                    Visibility="{Binding Path=DeleteUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
+            <Button HorizontalAlignment="Right" Grid.Column="2" 
+                    Padding="20 3" Margin="0 0 10 0" Content="Add" 
+                    Command="{Binding InsertUICommand}" 
+                    Visibility="{Binding Path=InsertUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
+            <Button HorizontalAlignment="Right" Grid.Column="2" 
+                    Padding="20 3" Margin="0 0 10 0" Content="Update" 
+                    Command="{Binding UpdateUICommand}"
+                    Visibility="{Binding Path=UpdateUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
+            <Button HorizontalAlignment="Right" Grid.Column="3" 
+                    Padding="20 3" Content="Cancel" 
+                    Command="{Binding CancelUICommand}" />
+        </Grid>-->
+
+
+
+
+    </Grid>
+
+
+</dx:DXWindow>
