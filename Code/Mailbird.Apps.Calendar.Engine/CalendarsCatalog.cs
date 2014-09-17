@@ -27,38 +27,53 @@ namespace Mailbird.Apps.Calendar.Engine
 
         public IEnumerable<Metadata.Calendar> GetCalendars()
         {
-            return _calenderService.CalendarRepo.Get();
+            lock (_calenderService)
+            {
+                return _calenderService.CalendarRepo.Get();
+            }
         }
 
         public Metadata.Calendar GetCalendar(string calendarId)
         {
-            return _calenderService.CalendarRepo.Get(calendarId);
+            lock (_calenderService)
+            {
+                return _calenderService.CalendarRepo.Get(calendarId);
+            }
         }
 
         public Metadata.Calendar InsertCalendar(Metadata.Calendar calender)
         {
-            var result = _calenderService.CalendarRepo.Add(calender);
-            _calenderService.SaveChanges();
-            return result;
+            lock (_calenderService)
+            {
+                var result = _calenderService.CalendarRepo.Add(calender);
+                _calenderService.SaveChanges();
+                return result;
+            }
         }
 
         public Metadata.Calendar UpdateCalendar(Metadata.Calendar calender)
         {
-            var result = _calenderService.CalendarRepo.Update(calender);
-            _calenderService.SaveChanges();
-            return result;
+            lock (_calenderService)
+            {
+                var result = _calenderService.CalendarRepo.Update(calender);
+                _calenderService.SaveChanges();
+                return result;
+            }
         }
 
         public bool RemoveCalendar(Metadata.Calendar calender)
         {
-            var toDeleteApp = GetAppointments(calender.Id);
-            foreach(var app in toDeleteApp)
+            lock (_calenderService)
             {
-                _calenderService.AppointmentRepo.Delete(app);
+                var toDeleteApp = GetAppointments(calender.Id);
+                foreach (var app in toDeleteApp)
+                {
+                    _calenderService.AppointmentRepo.Delete(app);
+                }
+                _calenderService.CalendarRepo.Delete(calender);
+                _calenderService.SaveChanges();
+                return true;
             }
-            _calenderService.CalendarRepo.Delete(calender);
-            _calenderService.SaveChanges();
-            return true;
         }
 
 
@@ -67,33 +82,47 @@ namespace Mailbird.Apps.Calendar.Engine
 
         public IEnumerable<Appointment> GetAppointments()
         {
-            return _calenderService.AppointmentRepo.Get();
+            lock (_calenderService)
+            {
+                return _calenderService.AppointmentRepo.Get();
+            }
         }
 
         public IEnumerable<Appointment> GetAppointments(string calendarId)
         {
-            return _calenderService.AppointmentRepo.Get().Where(m => m.CalendarId == calendarId).ToList();
+            lock (_calenderService)
+            {
+                return _calenderService.AppointmentRepo.Get().Where(m => m.CalendarId == calendarId).ToList();
+            }
         }
 
         public Appointment InsertAppointment(Appointment appointment)
         {
-            var result = _calenderService.AppointmentRepo.Add(appointment);
-            _calenderService.SaveChanges();
-            return result;
+            lock (_calenderService)
+            {
+                var result = _calenderService.AppointmentRepo.Add(appointment);
+                _calenderService.SaveChanges();
+                return result;
+            }
         }
 
         public Appointment UpdateAppointment(Appointment appointment)
         {
-            var result = _calenderService.AppointmentRepo.Update(appointment);
-            _calenderService.SaveChanges();
-            return result;
+            lock (_calenderService)
+            {
+                var result = _calenderService.AppointmentRepo.Update(appointment);
+                _calenderService.SaveChanges();
+                return result;
+            }
         }
 
         public bool RemoveAppointment(Appointment appointment)
-        {
+        {  lock (_calenderService)
+            {
             var result = _calenderService.AppointmentRepo.Delete(appointment);
             _calenderService.SaveChanges();
             return result;
+            }
         }
 
 

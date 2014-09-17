@@ -11,8 +11,8 @@ namespace Mailbird.Apps.Calendar.Engine.Repository
     {
         //List<T> Collection { get; set; }
 
-        List<T> Get();
-        T Get(string id);
+        List<T> Get(bool ignoreDeleted = true);
+        T Get(string id, bool ignoreDeleted = true);
         T Add(T data, LocalStorageDataState state = LocalStorageDataState.Added);
         T Update(T data, LocalStorageDataState state = LocalStorageDataState.Modified);
         bool Delete(T data, LocalStorageDataState state = LocalStorageDataState.Deleted);

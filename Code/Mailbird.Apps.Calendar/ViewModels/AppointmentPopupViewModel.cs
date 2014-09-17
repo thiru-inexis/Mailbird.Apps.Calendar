@@ -9,6 +9,7 @@ using Mailbird.Apps.Calendar.Infrastructure;
 using Appointment = DevExpress.XtraScheduler.Appointment;
 using ViewModelBase = Mailbird.Apps.Calendar.Infrastructure.ViewModelBase;
 using DevExpress.Mvvm;
+using Mailbird.Apps.Calendar.UIModels;
 
 
 namespace Mailbird.Apps.Calendar.ViewModels
@@ -31,6 +32,8 @@ namespace Mailbird.Apps.Calendar.ViewModels
         protected UIModels.CalenderUI _selectedCalender;
 
         protected List<UIModels.CalenderUI> _availableCalenders;
+
+        public CalenderUI DefaultCalender;
 
         public AppointmentPopupViewModel()
         {
@@ -198,22 +201,22 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         private void OnInsertCommandInvoked()
         {
-            //InsertCalenderAction(_basemodel);
-            //CancelCalenderAction();
+            InsertAppointmentAction(_bm);
+            CancelPopUpAction();
         }
         private void OnUpdateCommandInvoked()
         {
-            //UpdateCalenderAction(_basemodel);
-            //CancelCalenderAction();
+            UpdateAppointmentAction(_bm);
+            CancelPopUpAction();
         }
         private void OnDeleteCommandInvoked()
         {
-            //DeleteCalenderAction(_basemodel);
-            //CancelCalenderAction();
+            DeleteAppointmentAction(_bm);
+            CancelPopUpAction();
         }
         private void OnCancelCommandInvoked()
         {
-            //CancelCalenderAction();
+            CancelPopUpAction();
         }
 
 
@@ -233,7 +236,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
             get
             {
                 if (IsNewAppointment) { return "New Appointment"; }
-                return string.Format("Edit - [{0}]", Subject);
+                return string.Format("Edit - [{0}]", Summary);
             }
         }
 
@@ -261,6 +264,17 @@ namespace Mailbird.Apps.Calendar.ViewModels
         }
 
 
+        public Engine.Enums.AppointmentTransparency SelectedTransparency
+        {
+            get { return _bm.Transparency; }
+            set
+            {
+                _bm.Transparency = value;
+                RaisePropertyChanged(() => SelectedTransparency);
+            }
+        }
+
+
 
         public List<UIModels.CalenderUI> AvailableCalenders
         {
@@ -271,6 +285,12 @@ namespace Mailbird.Apps.Calendar.ViewModels
                 RaisePropertyChanged(() => AvailableCalenders);
             }
         }
+
+        public List<Engine.Enums.AppointmentTransparency> AvailableTransparencies
+        {
+            get { return Enum.GetValues(typeof(Engine.Enums.AppointmentTransparency)).Cast<Engine.Enums.AppointmentTransparency>().ToList(); }
+        }
+
 
 
         public int ReminderDuration
@@ -327,7 +347,14 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         public UIModels.CalenderUI SelectedCalender
         {
-            get { return _selectedCalender; }
+            get 
+            {
+                if (_selectedCalender == null && DefaultCalender != null)
+                {
+                    _selectedCalender = DefaultCalender;
+                }
+                return _selectedCalender;
+            }
             set
             {
                 _selectedCalender = value;
@@ -346,13 +373,13 @@ namespace Mailbird.Apps.Calendar.ViewModels
         }
 
 
-        public string Subject
+        public string Summary
         {
-            get { return _bm.Subject; }
+            get { return _bm.Summary; }
             set 
             {
-                _bm.Subject = value;
-                RaisePropertyChanged(() => Subject);
+                _bm.Summary = value;
+                RaisePropertyChanged(() => Summary);
             }
         }
 
@@ -569,11 +596,11 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         #region Public Properties
 
-        public Action<UIModels.AppointmentUI> AddAppointmentAction { get; set; }
+        public Action<AppointmentUI> InsertAppointmentAction { get; set; }
 
-        public Action<UIModels.AppointmentUI> UpdateAppointmentAction { get; set; }
+        public Action<AppointmentUI> UpdateAppointmentAction { get; set; }
 
-        public Action<object> RemoveAppointmentAction { get; set; }
+        public Action<AppointmentUI> DeleteAppointmentAction { get; set; }
 
         public Action CancelPopUpAction { get; set; }
 

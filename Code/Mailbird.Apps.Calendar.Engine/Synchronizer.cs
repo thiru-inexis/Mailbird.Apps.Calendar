@@ -56,14 +56,7 @@ namespace Mailbird.Apps.Calendar.Engine
                     while (true)
                     {
                         cancelToken.ThrowIfCancellationRequested();
-
-                        //If any exceptions are throen from the sync, suppress them
-                        try
-                        {
-                            Sync();
-                        }
-                        catch { }
-
+                        Sync();
                         Thread.Sleep(APPOINTMENT_SYNC_PERIOD);
                     }
                 }, cancelToken);
@@ -79,8 +72,12 @@ namespace Mailbird.Apps.Calendar.Engine
         {
             this.IsSynchronozing = true;
 
-            //this.OutBoundSync();
-            this.InBoundSync();
+            try
+            {
+                this.OutBoundSync();
+                //this.InBoundSync();
+            }
+            catch { }
 
             this.IsSynchronozing = false;
         }
@@ -90,59 +87,80 @@ namespace Mailbird.Apps.Calendar.Engine
         /// <summary>
         /// Local changes are synced with the live services
         /// </summary>
-        //private void OutBoundSync()
-        //{
-        //    var pendingCalenders = _localStorage.CalendarRepo.Get()
-        //                              .Where(a => a.LocalStorageState != Enums.LocalStorageDataState.Unchanged)
-        //                              .Select(a => a).ToList();
+        private void OutBoundSync()
+        {
+            var pendingCalenders = _localStorage.CalendarRepo.Get(false)
+                                      .Where(a => a.LocalStorageState != Enums.LocalStorageDataState.Unchanged)
+                                      .Select(a => a).ToList();
 
-        //    foreach (var calender in pendingCalenders)
-        //    {
-        //        if (calender.LocalStorageState == Enums.LocalStorageDataState.Added)
-        //        {
-        //            var response = _googleStorage.InsertCalendarList(calender);
-        //            _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
-        //            _localStorage.CalendarRepo.Add(response, Enums.LocalStorageDataState.Unchanged);
-        //        }
-        //        else if (calender.LocalStorageState == Enums.LocalStorageDataState.Modified)
-        //        {
-        //            var response = _googleStorage.InsertCalendarList(calender);
-        //            _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
-        //            _localStorage.CalendarRepo.Add(response, Enums.LocalStorageDataState.Unchanged);
-        //        }
-        //        else if (calender.LocalStorageState == Enums.LocalStorageDataState.Deleted)
-        //        {
-        //            var response = _googleStorage.InsertCalendarList(calender);
-        //            _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
-        //        }
-        //    }
+            if (pendingCalenders.Any())
+            {
+
+                lock (_localStorage)
+                {
+                    foreach (var calender in pendingCalenders)
+                    {
+                        if (calender.LocalStorageState == Enums.LocalStorageDataState.Added)
+                        {
+                            var response = _googleStorage.InsertCalendar(calender);
+                            _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
+                            _localStorage.CalendarRepo.Add(response, Enums.LocalStorageDataState.Unchanged);
+                        }
+                        else if (calender.LocalStorageState == Enums.LocalStorageDataState.Modified)
+                        {
+                            var response = _googleStorage.UpdateCalendar(calender);
+                            _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
+                            _localStorage.CalendarRepo.Add(response, Enums.LocalStorageDataState.Unchanged);
+                        }
+                        else if (calender.LocalStorageState == Enums.LocalStorageDataState.Deleted)
+                        {
+                            var response = _googleStorage.DeleteCalendar(calender);
+                            _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
+                        }
+                    }
+
+
+                    _localStorage.SaveChanges();
+                }
+            }
 
 
 
-        //    var pendingAppointments =_localStorage.AppointmentRepo.Get()
-        //                                          .Where(a => a.LocalStorageState != Enums.LocalStorageDataState.Unchanged)
-        //                                          .Select(a => a).ToList();
+
+            var pendingAppointments = _localStorage.AppointmentRepo.Get(false)
+                                                  .Where(a => a.LocalStorageState != Enums.LocalStorageDataState.Unchanged)
+                                                  .Select(a => a).ToList();
+
+            if (pendingAppointments.Any())
+            {
+
+                lock (_localStorage)
+                {
+                    foreach (var app in pendingAppointments)
+                    {
+                        if (app.LocalStorageState == Enums.LocalStorageDataState.Added)
+                        {
+                            var changedAppointment = _googleStorage.InsertAppointment(app);
+                            _localStorage.AppointmentRepo.Delete(app, Enums.LocalStorageDataState.Unchanged);
+                            _localStorage.AppointmentRepo.Add(changedAppointment, Enums.LocalStorageDataState.Unchanged);
+                        }
+                        else if (app.LocalStorageState == Enums.LocalStorageDataState.Modified)
+                        {
+                            var changedAppointment = _googleStorage.UpdateAppointment(app);
+                            _localStorage.AppointmentRepo.Delete(app, Enums.LocalStorageDataState.Unchanged);
+                            _localStorage.AppointmentRepo.Add(changedAppointment, Enums.LocalStorageDataState.Unchanged);
+                        }
+                        else if (app.LocalStorageState == Enums.LocalStorageDataState.Deleted)
+                        {
+                            var status = _googleStorage.DeleteAppointment(app);
+                            _localStorage.AppointmentRepo.Delete(app, Enums.LocalStorageDataState.Unchanged);
+                        }
+                    }
+                }
+            }
 
 
-        //    foreach (var app in pendingAppointments)
-        //    {
-        //        if (app.LocalStorageState == Enums.LocalStorageDataState.Added)
-        //        {
-        //            var changedAppointment = _googleStorage.InsertAppointment(app);
-        //            _localStorage.AppointmentRepo.Update(changedAppointment, Enums.LocalStorageDataState.Unchanged);
-        //        }
-        //        else if (app.LocalStorageState == Enums.LocalStorageDataState.Modified)
-        //        {
-        //            var changedAppointment = _googleStorage.UpdateAppointment(app);
-        //            _localStorage.AppointmentRepo.Update(changedAppointment, Enums.LocalStorageDataState.Unchanged);
-        //        }
-        //        else if (app.LocalStorageState == Enums.LocalStorageDataState.Deleted)
-        //        {
-        //            var status = _googleStorage.DeleteAppointment(app);
-        //           _localStorage.AppointmentRepo.Delete(app);
-        //        }
-        //    }
-        //}
+        }
 
 
 
@@ -155,8 +173,6 @@ namespace Mailbird.Apps.Calendar.Engine
 
             lock (_localStorage)
             {
-
-
 
                 #region Colors Sync
 
@@ -176,39 +192,42 @@ namespace Mailbird.Apps.Calendar.Engine
                 var pendingColorDefs = _googleStorage.GetColors(out nextToken, currentToken);
                 if (pendingColorDefs.Any())
                 {
-                    _localStorage.CalendarColorRepo.Clear();
-                    foreach (var colorDef in pendingColorDefs[Enums.ColorType.Calendar])
+                    lock (_localStorage)
                     {
-                        _localStorage.CalendarColorRepo.Add(colorDef, Enums.LocalStorageDataState.Unchanged);
+                        _localStorage.CalendarColorRepo.Clear();
+                        foreach (var colorDef in pendingColorDefs[Enums.ColorType.Calendar])
+                        {
+                            _localStorage.CalendarColorRepo.Add(colorDef, Enums.LocalStorageDataState.Unchanged);
+                        }
+
+                        _localStorage.AppointmentColorRepo.Clear();
+                        foreach (var colorDef in pendingColorDefs[Enums.ColorType.Appointment])
+                        {
+                            _localStorage.AppointmentColorRepo.Add(colorDef, Enums.LocalStorageDataState.Unchanged);
+                        }
+
+
+                        syncToken.Token = nextToken;
+                        if (string.IsNullOrEmpty(syncToken.Id))
+                        {
+                            _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged);
+                        }
+                        else
+                        {
+                            _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged);
+                        }
+
+                        _localStorage.SaveChanges();
                     }
-
-                    _localStorage.AppointmentColorRepo.Clear();
-                    foreach (var colorDef in pendingColorDefs[Enums.ColorType.Appointment])
-                    {
-                        _localStorage.AppointmentColorRepo.Add(colorDef, Enums.LocalStorageDataState.Unchanged);
-                    }
                 }
 
-
-
-                syncToken.Token = nextToken;
-                if (string.IsNullOrEmpty(syncToken.Id))
-                {
-                    _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged);
-                }
-                else
-                {
-                    _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged);
-                }
 
                 #endregion
 
 
-                _localStorage.SaveChanges();
-
-
 
                 #region CalenderSync
+
 
                 syncToken = _localStorage.SyncRepo.Get().FirstOrDefault(m => m.TokenContext == Enums.SyncTokenType.Calendar);
                 if (syncToken == null)
@@ -224,36 +243,41 @@ namespace Mailbird.Apps.Calendar.Engine
                 nextToken = currentToken;
 
                 var pendingCalenders = _googleStorage.GetCalendars(out nextToken, currentToken, true);
-                foreach (var calendar in pendingCalenders)
+                if (pendingCalenders.Any())
                 {
-                    var localItem = _localStorage.CalendarRepo.Get(calendar.Id);
-                    if (localItem != null && calendar.CalenderList.IsDeleted)
+                    lock (_localStorage)
                     {
-                        _localStorage.CalendarRepo.Delete(localItem, Enums.LocalStorageDataState.Unchanged);
+                        foreach (var calendar in pendingCalenders)
+                        {
+                            var localItem = _localStorage.CalendarRepo.Get(calendar.Id, false);
+                            if (localItem != null && calendar.CalenderList.IsDeleted)
+                            {
+                                _localStorage.CalendarRepo.Delete(localItem, Enums.LocalStorageDataState.Unchanged);
+                            }
+                            else if (localItem == null && !calendar.CalenderList.IsDeleted)
+                            {
+                                _localStorage.CalendarRepo.Add(calendar, Enums.LocalStorageDataState.Unchanged);
+                            }
+                        }
+
+                        syncToken.Token = nextToken;
+                        if (string.IsNullOrEmpty(syncToken.Id))
+                        {
+                            _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged);
+                        }
+                        else
+                        {
+                            _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged);
+                        }
+
+                        // Save changes to file ...
+                        _localStorage.SaveChanges();
                     }
-                    else if (localItem == null && !calendar.CalenderList.IsDeleted)
-                    {
-                        _localStorage.CalendarRepo.Add(calendar, Enums.LocalStorageDataState.Unchanged);
-                    }
                 }
 
-                syncToken.Token = nextToken;
-                if (string.IsNullOrEmpty(syncToken.Id))
-                {
-                    _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged);
-                }
-                else
-                {
-                    _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged);
-                }
-
-
+      
                 #endregion
 
-
-                _localStorage.SaveChanges();
-
-                // Save changes to file ...
 
 
                 #region Calender Appointments
@@ -262,7 +286,6 @@ namespace Mailbird.Apps.Calendar.Engine
                 var calenders = _localStorage.CalendarRepo.Get();
                 foreach (var calender in calenders)
                 {
-
                     syncToken = null;
                     currentToken = null;
                     nextToken = null;
@@ -284,41 +307,38 @@ namespace Mailbird.Apps.Calendar.Engine
                     nextToken = currentToken;
 
                     var pendingAppointments = _googleStorage.GetAppointments(out nextToken, calender, currentToken, true);
-                    foreach (var appointment in pendingAppointments)
+                    if (pendingAppointments.Any())
                     {
-                        var localItem = _localStorage.AppointmentRepo.Get(appointment.Id);
-                        if (localItem != null && appointment.IsDeleted)
+                        lock (_localStorage)
                         {
-                            _localStorage.AppointmentRepo.Delete(localItem, Enums.LocalStorageDataState.Unchanged);
-                        }
-                        else if (localItem == null && !appointment.IsDeleted)
-                        {
-                            _localStorage.AppointmentRepo.Add(appointment, Enums.LocalStorageDataState.Unchanged);
-                        }
-                    }
+                            foreach (var appointment in pendingAppointments)
+                            {
+                                var localItem = _localStorage.AppointmentRepo.Get(appointment.Id, false);
+                                if (localItem != null && appointment.Status == Enums.AppointmentStatus.Cancelled)
+                                {
+                                    _localStorage.AppointmentRepo.Delete(localItem, Enums.LocalStorageDataState.Unchanged);
+                                }
+                                else if (localItem == null && appointment.Status != Enums.AppointmentStatus.Cancelled)
+                                {
+                                    _localStorage.AppointmentRepo.Add(appointment, Enums.LocalStorageDataState.Unchanged);
+                                }
+                            }
 
-                    syncToken.Token = nextToken;
-                    if (string.IsNullOrEmpty(syncToken.Id))
-                    {
-                        _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged);
-                    }
-                    else
-                    {
-                        _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged);
-                    }
+                            syncToken.Token = nextToken;
+                            if (string.IsNullOrEmpty(syncToken.Id))
+                                _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged);
+                            else
+                                _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged);
 
+                            // save changes to file ...
+                            _localStorage.SaveChanges();
+                        }
+                    }
                 }
-
 
 
                 #endregion
 
-
-
-
-
-                _localStorage.SaveChanges();
-                // save changes to file ...
             }
         }
 

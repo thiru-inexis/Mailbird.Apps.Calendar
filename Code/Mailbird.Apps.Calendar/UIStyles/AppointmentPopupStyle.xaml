@@ -7,8 +7,8 @@
               xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
              xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
               xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
-
-             mc:Ignorable="d" Height="450" Width="400" Title="{Binding Title}" ResizeMode="NoResize"  >
+dx:ThemeManager.ThemeName="MetropolisLight"
+             mc:Ignorable="d" Height="450" Width="600" Title="{Binding Title}" ResizeMode="NoResize"  >
 
 
     <dx:DXWindow.DataContext>
@@ -31,62 +31,55 @@
             <RowDefinition Height="auto" Tag="Action Buttons"/>
         </Grid.RowDefinitions>
 
+        <!--Input Controls-->
         <Grid Grid.Row="0" Margin="0" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" Tag="Subject"/>
+                <RowDefinition Height="*" Tag="Other Settings"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" Tag="Appointment Settings"/>
-                <!--<ColumnDefinition Width="1*" Tag="Guests Settings"/>-->
+                <ColumnDefinition Width="2*" Tag="Appointment Settings"/>
+                <ColumnDefinition Width="1*" Tag="Guests Settings"/>
             </Grid.ColumnDefinitions>
             
-            
-            
-            <!--<Grid Grid.Column="1"></Grid>-->
-            
-            
-            <Grid Grid.Column="0">
+            <!--Subject-->
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" Tag="Labels" SharedSizeGroup="ColLables"/>
+                    <ColumnDefinition Width="*" Tag="Controls"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" 
+                           Margin="0 5 5 5" VerticalAlignment="Top"
+                           Text="Subject: " Style="{StaticResource ResourceKey=LabelStyle}"/>
+                <dxe:TextEdit Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                              Margin="5 5 0 5"
+                              EditValue="{Binding Subject, Mode=TwoWay}" />
+            </Grid>
+         
+            <!--Other Appointment Settings-->
+            <Grid Grid.Row="1" Grid.Column="0" 
+                  Margin="0 0 5 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" Tag="Labels" SharedSizeGroup="ColLables"/>
                     <ColumnDefinition Width="*" Tag="Controls"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="1*" Tag="Subject" />
                     <RowDefinition Height="1*" Tag="Where/Location" />
+                    <RowDefinition Height="3*" Tag="Description" />
                     <RowDefinition Height="3*" Tag="Date Time Settings"/>
                     <RowDefinition Height="1*" Tag="Reminder" />
-                    <!--<RowDefinition Height="1*" Tag="Show me as" />
-                    <RowDefinition Height="1*" Tag="Privacy" />-->
-                    <RowDefinition Height="3*" Tag="Description" />
+                    <RowDefinition Height="1*" Tag="Show me as" />
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" 
                            Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Subject: " Style="{StaticResource ResourceKey=LabelStyle}"/>
+                           Text="Where: " Style="{StaticResource ResourceKey=LabelStyle}"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" 
                            Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Where: " Style="{StaticResource ResourceKey=LabelStyle}"/>
-                <!--<TextBlock Grid.Row="4" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Show me as: " Style="{StaticResource ResourceKey=LabelStyle}"/>
-                <TextBlock Grid.Row="5" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Privacy: " Style="{StaticResource ResourceKey=LabelStyle}"/>-->
-                <TextBlock Grid.Row="6" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
                            Text="Description: " Style="{StaticResource ResourceKey=LabelStyle}"/>
-
-             
-
-                <!--<TextBlock Grid.Row="1" Grid.Column="0" 
-                           Padding="3" Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Description: "  Style="{StaticResource ResourceKey=LabelStyle}"/>
-                <TextBlock Grid.Row="4" Grid.Column="0" 
-                           Padding="3" Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Color: "  Style="{StaticResource ResourceKey=LabelStyle}"/>-->
-
-                <dxe:TextEdit Grid.Row="0" Grid.Column="1"
-                             Margin="5 5 0 5"
-                              EditValue="{Binding Subject, Mode=TwoWay}" />
-
-                <dxe:ComboBoxEdit Grid.Row="1" Grid.Column="1"
+                
+                <dxe:ComboBoxEdit Grid.Row="0" Grid.Column="1"
                                   Margin="5 5 0 5" 
                                   AutoComplete="True" AllowDefaultButton="False" 
                                   IsTextEditable="True" AllowItemHighlighting="False"
@@ -94,7 +87,11 @@
                                   ItemsSource="{Binding LocationSuggestions}"
                                   IsPopupOpen="{Binding IsLocationPopupOpen , Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 </dxe:ComboBoxEdit>
-               
+                <dxe:TextEdit Grid.Row="1" Grid.Column="1"
+                              Margin="5 5 0 5"
+                              EditValue="{Binding Description, Mode=TwoWay}"
+                              TextWrapping="Wrap" AcceptsReturn="True" 
+                              VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
 
                 <Grid Grid.Row="2"  Grid.ColumnSpan="2">
                     <Grid.ColumnDefinitions>
@@ -103,9 +100,9 @@
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*" Tag="All day event"/>
+                        <RowDefinition Height="1*" Tag="From date time"/>
+                        <RowDefinition Height="1*" Tag="To date time"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="1" Grid.Column="0" 
@@ -158,10 +155,10 @@
                     </dxe:ComboBoxEdit>
                 </Grid>
 
-
                 <Grid Grid.Row="3"  Grid.ColumnSpan="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" SharedSizeGroup="ColLables"/>
+                        <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
@@ -169,43 +166,52 @@
                         <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" 
+                    <TextBlock Grid.Row="0" Grid.Column="0" 
                            Margin="0 5 5 5" VerticalAlignment="Top"
                            Text="Reminder: " Style="{StaticResource ResourceKey=LabelStyle}"/>
 
-                    <dxe:TextEdit Grid.Row="1" Grid.Column="1"
+                    <dxe:TextEdit Grid.Row="0" Grid.Column="1" Width="30"
                                   Margin="5 5 5 5" VerticalAlignment="Stretch"
+                                  HorizontalContentAlignment="Center"
                                   EditValue="{Binding Path=ReminderDuration}"
                                   MaskType="RegEx" Mask="\d+"
                                   />
 
-                    <dxe:ComboBoxEdit Grid.Row="1" Grid.Column="2"
+                    <dxe:ComboBoxEdit Grid.Row="0" Grid.Column="2"
                                       Margin="5 5 0 5" HorizontalAlignment="Stretch"
                                       IsTextEditable="False"
                                       ItemsSource="{Binding Path=SupportedReminderTypes}"
                                       SelectedItem="{Binding Path=SelectedReminderType}"/>
+
+                    <TextBlock Grid.Row="0" Grid.Column="3"
+                               Margin="5 5 0 5" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                               TextAlignment="Left"
+                               Text=" before"/>
                 </Grid>
-                
 
-       
-
-                <!--<dxe:ListBoxEdit Grid.Row="4" Grid.Column="1"  
-                                 Margin="5 5 0 5" VerticalAlignment="Stretch">
+                <TextBlock Grid.Row="4" Grid.Column="0" 
+                           Margin="0 5 5 5" VerticalAlignment="Top"
+                           Text="Show me as: " Style="{StaticResource ResourceKey=LabelStyle}"/>
+                <dxe:ListBoxEdit Grid.Row="4" Grid.Column="1"  
+                                 Margin="5 5 0 5" VerticalAlignment="Stretch"
+                                 ItemsSource="{Binding Path=AvailableTransparencies}"
+                                 SelectedItem="{Binding Path=SelectedTransparency}">
                     <dxe:ListBoxEdit.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Horizontal" />
                         </ItemsPanelTemplate>
                     </dxe:ListBoxEdit.ItemsPanel>
-                    <dxe:ListBoxEdit.Items>
+                    <!--<dxe:ListBoxEdit.Items>
+                        <RadioButton Content="sdsd"/>
                         <dxe:ListBoxEditItem Content="Busy"/>
                         <dxe:ListBoxEditItem Content="Free"/>
-                    </dxe:ListBoxEdit.Items>
+                    </dxe:ListBoxEdit.Items>-->
                     <dxe:ListBoxEdit.StyleSettings>
                         <dxe:RadioListBoxEditStyleSettings/>
                     </dxe:ListBoxEdit.StyleSettings>
                 </dxe:ListBoxEdit>
 
-                <dxe:ListBoxEdit Grid.Row="5" Grid.Column="1"  
+                <!--<dxe:ListBoxEdit Grid.Row="5" Grid.Column="1"  
                                  Margin="5 5 0 5"  VerticalAlignment="Stretch">
                     <dxe:ListBoxEdit.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -222,16 +228,18 @@
                     </dxe:ListBoxEdit.StyleSettings>
                 </dxe:ListBoxEdit>-->
                 
-                <dxe:TextEdit Grid.Row="6" Grid.Column="1"
-                              Margin="5 5 0 5"
-                              EditValue="{Binding Description, Mode=TwoWay}"
-                              TextWrapping="Wrap" AcceptsReturn="True" 
-                              VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
-             
+
             </Grid>
+
+            <!--Appointment Quest Settings-->
+            <Grid Grid.Row="1" Grid.Column="1" 
+                  Margin="5 0 0 0">
+                <TextBlock Text="Guests"/>
+            </Grid>
+
         </Grid>
 
-
+        <!--Action Controls/Buttons-->
         <Grid Grid.Row="1" Margin="0 20 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" Tag="Add/Update Button"/>
@@ -248,9 +256,6 @@
                     Padding="20 3" Margin="0 0 10 0" Content="Update" 
                     Command="{Binding UpdateUICommand}"
                     Visibility="{Binding Path=UpdateUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
-            
-
-
             <dxe:ComboBoxEdit Grid.Column="2" Width="auto"
                               Margin="10 0 0 0"
                               IsTextEditable="False"
@@ -260,12 +265,11 @@
                 <dxe:ComboBoxEdit.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <Rectangle Margin="1" 
-                       Width="10"
-                       Height="{Binding RelativeSource={RelativeSource Self}, Path=Width}" 
-                       Fill="{Binding Path=BackgroundColor}"/>
-
-                            <Label Margin="1" Content="{Binding Path=Name}"/>
+                            <Rectangle Margin="5" 
+                                       Width="10" Height="{Binding RelativeSource={RelativeSource Self}, Path=Width}" 
+                                       RadiusX="5" RadiusY="{Binding RelativeSource={RelativeSource Self}, Path=RadiusX}"
+                                       Fill="{Binding Path=.BackgroundColor}"/>
+                            <TextBlock Margin="0 5 5 5" Width="auto" Text="{Binding Path=.Summary}"/>
                         </StackPanel>
                     </DataTemplate>
                 </dxe:ComboBoxEdit.ItemTemplate>

@@ -159,12 +159,15 @@ namespace Mailbird.Apps.Calendar.Engine.CalenderServices
         public Metadata.Calendar InsertCalendar(Metadata.Calendar calendar)
         {
             var entry = calendar.Clone();
+            // Nullify readonly properties to prevent exceptions
+            entry.Id = null;
             var calendarResponse = _calendarService.Calendars.Insert(entry).Execute();
             var result = calendarResponse.Clone();
 
-            result.CalenderList = (calendar.CalenderList != null)
+            // The calendarlist model has to be validated before on entry.. This is a bad check
+            result.CalenderList = (calendar.CalenderList != null && calendar.CalenderList.Id != null)
                 ? InsertCalendarList(calendar.CalenderList)
-                : GetCalendarList(calendar);
+                : GetCalendarList(result);
 
             return result;
         }
@@ -173,6 +176,10 @@ namespace Mailbird.Apps.Calendar.Engine.CalenderServices
         public Metadata.CalendarList InsertCalendarList(Metadata.CalendarList calendarList)
         {
             var entry = calendarList.Clone();
+            // Nullify readonly properties to prevent exceptions
+            entry.Summary = entry.Description = entry.AccessRole = null;
+            entry.Primary = null;
+
             var eventReponse = _calendarService.CalendarList.Insert(entry).Execute();
             return eventReponse.Clone();
         }
@@ -196,6 +203,10 @@ namespace Mailbird.Apps.Calendar.Engine.CalenderServices
         public Metadata.CalendarList UpdateCalenderList(Metadata.CalendarList calendarList)
         {
             var entry = calendarList.Clone();
+            // Nullify readonly properties to prevent exceptions
+            entry.Summary = entry.Description = entry.AccessRole = null; 
+            entry.Primary = null;
+            
             var eventReponse = _calendarService.CalendarList.Update(entry, entry.Id).Execute();
             return eventReponse.Clone();
         }
@@ -203,7 +214,7 @@ namespace Mailbird.Apps.Calendar.Engine.CalenderServices
      
         // delete
 
-        public bool DeleteCalendar(Metadata.CalendarList calendar)
+        public bool DeleteCalendar(Metadata.Calendar calendar)
         {
             var entry = calendar.Clone();
             var calendarResponse = _calendarService.Calendars.Delete(entry.Id).Execute();

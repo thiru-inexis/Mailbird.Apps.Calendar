@@ -119,6 +119,8 @@
     <Compile Include="CalendarsCatalog.cs" />
     <Compile Include="CalenderServices\GoogleCalendarService.cs" />
     <Compile Include="CalenderServices\LocalCalenderService.cs" />
+    <Compile Include="Enums\AppointmentStatus.cs" />
+    <Compile Include="Enums\AppointmentTransparency.cs" />
     <Compile Include="Enums\ColorType.cs" />
     <Compile Include="Enums\ReminderType.cs" />
     <Compile Include="Enums\Access.cs" />
@@ -131,6 +133,7 @@
     <Compile Include="Interfaces\ICalendarProvider - Copy.cs" />
     <Compile Include="Interfaces\ICalendarCatalog.cs" />
     <Compile Include="Metadata\Appointment.cs" />
+    <Compile Include="Metadata\Attendee.cs" />
     <Compile Include="Metadata\Calendar.cs" />
     <Compile Include="Metadata\CalendarList.cs" />
     <Compile Include="Metadata\ColorDefinition.cs" />

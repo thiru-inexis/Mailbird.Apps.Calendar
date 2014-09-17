@@ -36,12 +36,29 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
                 {
                     Id = source.Id,
                     CalendarId = calenderId,
-                    Subject = source.Summary,
+                    Kind = source.Kind,
+                    Etag = source.ETag,
+                    Summary = source.Summary,
                     Description = source.Description,
+                    Location = source.Location,
+                    ColorId = source.ColorId,
+                    Created = source.Created ?? DateTime.MinValue,
+                    Updated = source.Updated ?? DateTime.MinValue,
                     StartTime = (source.Start != null && source.Start.DateTime.HasValue) ? source.Start.DateTime.Value : DateTime.Now,
                     EndTime = (source.End != null && source.End.DateTime.HasValue) ? source.End.DateTime.Value : DateTime.Now,
-                    Location = source.Location,
-                    IsDeleted = (source.Status != null && source.Status == "cancelled"),
+                    ICalUID = source.ICalUID,
+                    IsAnyoneCanAddSelf = source.AnyoneCanAddSelf ?? false,
+                    IsGuestsCanInviteOthers = source.GuestsCanInviteOthers ?? false,
+                    IsGuestsCanModify = source.GuestsCanModify ?? false,
+                    IsGuestsCanSeeOtherGuests = source.GuestsCanSeeOtherGuests ?? false,
+                    IsPrivateCopy = source.PrivateCopy ?? false,
+                    IsLocked = source.Locked ?? false,
+
+                    Status = (source.Status.Equals("cancelled", StringComparison.CurrentCultureIgnoreCase) ?  AppointmentStatus.Cancelled
+                             :source.Status.Equals("tentative", StringComparison.CurrentCultureIgnoreCase) ?  AppointmentStatus.UnCertain
+                             :AppointmentStatus.Confirmed),
+                    Transparency = (source.Transparency.Equals("transparent", StringComparison.CurrentCultureIgnoreCase) ?  AppointmentTransparency.Transparent
+                                    :AppointmentTransparency.Opaque),
                     Reminders = (source.Reminders.Overrides != null) 
                                 ? source.Reminders.Overrides.Select(m => m.Clone()).ToList() 
                                 : new List<Reminder>()
@@ -70,6 +87,22 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
         }
 
 
+        public static EventReminder Clone(this Reminder source)
+        {
+            EventReminder result = null;
+            if (source != null)
+            {
+                result = new EventReminder()
+                {
+                    Method = (source.Type == ReminderType.Sms ? "sms" 
+                             :source.Type == ReminderType.Email ? "email"  : "popup"),
+                    Minutes = (int)source.Duration.TotalMinutes
+                };
+            }
+            return result;
+        }
+
+
         /// <summary>
         /// Clones mailbirds's appointment type to google calender event 
         /// </summary>
@@ -81,16 +114,40 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
 
             if (source != null)
             {
-               
                 result = new Event()
                 {
-                    Start = new EventDateTime { DateTime = source.StartTime },
-                    End = new EventDateTime { DateTime = source.EndTime },
-                    Summary = source.Subject,
+                    Id = source.Id,
+                    Kind = source.Kind,
+                    ETag = source.Etag,
+                    Summary = source.Summary,
                     Description = source.Description,
-                    Location = source.Location
+                    Location = source.Location,
+                    ColorId = source.ColorId,
+                    Created = source.Created,
+                    Updated = source.Updated,
+                    Start = new EventDateTime { DateTime = source.EndTime },
+                    End = new EventDateTime { DateTime = source.EndTime },
+                    ICalUID = source.ICalUID,
+                    AnyoneCanAddSelf = source.IsAnyoneCanAddSelf,
+                    GuestsCanInviteOthers = source.IsGuestsCanInviteOthers,
+                    GuestsCanModify = source.IsGuestsCanModify,
+                    GuestsCanSeeOtherGuests = source.IsGuestsCanSeeOtherGuests,
+                    PrivateCopy = source.IsPrivateCopy,
+                    Locked = source.IsLocked,
+
+                    Status = (source.Status == AppointmentStatus.Cancelled ? "cancelled"
+                             : source.Status == AppointmentStatus.UnCertain ? "tentative" : "confirmed"),
+                    Transparency = (source.Transparency == AppointmentTransparency.Transparent ? "transparent" : "opaque"),
+
+                    Reminders = (source.Reminders == null ? null
+                                : new Event.RemindersData() 
+                                {
+                                     UseDefault = false,
+                                     Overrides = source.Reminders.Select(m => m.Clone()).ToList()
+                                })
                 };
             }
+
             return result;
         }
 
@@ -138,7 +195,6 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
 
             return result;
         }
-
 
 
         public static Metadata.CalendarList Clone(this CalendarListEntry source)
@@ -221,6 +277,9 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
 
             return result;
         }
+
+
+
 
     }
 }

@@ -11,12 +11,12 @@ namespace Mailbird.Apps.Calendar.UIModels
         private Engine.Metadata.Appointment _bm;
         private bool _isAllDayAppointment;
 
-
-
         public Engine.Metadata.Appointment BaseModel
         {
             get { return _bm; }
         }
+
+
 
         public string Id
         {
@@ -28,13 +28,13 @@ namespace Mailbird.Apps.Calendar.UIModels
             }
         }
 
-        public string Subject
+        public string Summary
         {
-            get { return _bm.Subject; }
+            get { return _bm.Summary; }
             set
             {
-                _bm.Subject = value;
-                RaisePropertyChanged(() => Subject);
+                _bm.Summary = value;
+                RaisePropertyChanged(() => Summary);
             }
         }
 
@@ -71,6 +71,7 @@ namespace Mailbird.Apps.Calendar.UIModels
             }
         }
 
+
         public bool IsAllDayAppointment
         {
             get { return _isAllDayAppointment; }
@@ -81,6 +82,16 @@ namespace Mailbird.Apps.Calendar.UIModels
             }
         }
 
+
+        public Engine.Enums.AppointmentTransparency Transparency
+        {
+            get { return _bm.Transparency; }
+            set
+            {
+                _bm.Transparency = value;
+                RaisePropertyChanged(() => Transparency);
+            }
+        }
 
         public TimeSpan PreReminderDuration { get; set; }
 

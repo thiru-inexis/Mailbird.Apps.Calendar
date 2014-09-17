@@ -140,15 +140,11 @@
     <Compile Include="UIStyles\AppointmentPopupStyle.xaml.cs">
       <DependentUpon>AppointmentPopupStyle.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UIStyles\FlyoutContentStyle.xaml.cs">
-      <DependentUpon>FlyoutContentStyle.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UIStyles\CalenderPopupContentStyle.xaml.cs">
       <DependentUpon>CalenderPopupContentStyle.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\CalenderPopupViewModel.cs" />
     <Compile Include="ViewModels\AppointmentPopupViewModel.cs" />
-    <Compile Include="ViewModels\FlyoutViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -175,10 +171,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="UIStyles\EditorStyles.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UIStyles\FlyoutContentStyle.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

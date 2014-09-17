@@ -19,7 +19,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="UIStyles/GeneralStyle.xaml" />
                 <ResourceDictionary Source="UIStyles/AppointmetStyle.xaml" />
-                <ResourceDictionary Source="UIStyles/FlyoutContentStyle.xaml" />
+                <!--<ResourceDictionary Source="UIStyles/FlyoutContentStyle.xaml" />-->
                 <!--<ResourceDictionary Source="UIStyles/CalenderPopupContentStyle.xaml" />-->
                 <ResourceDictionary Source="UIStyles/SchedulerContentStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
@@ -139,13 +139,13 @@
                                  
                                        Owner="{Binding this}"/>-->
 
-                    <dxe:FlyoutControl x:Name="FlyoutControl" 
+                    <!--<dxe:FlyoutControl x:Name="FlyoutControl" 
 						DataContext="{Binding FlyoutViewModel}"
 						PlacementTarget="{Binding ElementName=Scheduler}" 
 						StaysOpen="True"
 						IsOpen="{Binding IsOpen, Mode=TwoWay}" 
 						Style="{StaticResource Right}"
-						AllowMoveAnimation="True" />
+						AllowMoveAnimation="True" />-->
 
                     <dxsch:SchedulerControl x:Name="Scheduler" 
 						                    Margin="3" 

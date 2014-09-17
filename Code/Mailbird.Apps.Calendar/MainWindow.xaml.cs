@@ -49,7 +49,7 @@ namespace Mailbird.Apps.Calendar
 
         private void UIElement_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (!FlyoutControl.IsOpen) return;
+            //if (!FlyoutControl.IsOpen) return;
             //ViewModel.CloseInnerFlyout();
         }
 
@@ -68,7 +68,7 @@ namespace Mailbird.Apps.Calendar
                     //ResourceId = obj.ResourceId,
                     StartDateTime = obj.Start,
                     //StatusId = obj.StatusId,
-                    Subject = obj.Subject
+                    Summary = obj.Subject
                 };
                 ViewModel.UpdateAppointment(app);
             }
@@ -78,7 +78,7 @@ namespace Mailbird.Apps.Calendar
         {
             foreach (DevExpress.XtraScheduler.Appointment obj in e.Objects)
             {
-                ViewModel.RemoveAppointment(obj.Id);
+                ViewModel.DeleteAppointment(new UIModels.AppointmentUI() { Id = obj.Id.ToString()});
             }
         }
 

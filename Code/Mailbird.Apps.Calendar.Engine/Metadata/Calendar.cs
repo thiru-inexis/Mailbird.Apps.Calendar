@@ -18,7 +18,10 @@ namespace Mailbird.Apps.Calendar.Engine.Metadata
 
         public Calendar()
         {
-            this.CalenderList = null;
+            this.CalenderList = new CalendarList()
+            {
+                TimeZone = "UTC"
+            };
         }
     }
 

@@ -64,7 +64,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         public AppointmentPopupViewModel AppointmentPopupViewModel { get; private set; }
         public CalenderPopupViewModel CalenderPopupViewModel { get; private set; }
-        public FlyoutViewModel FlyoutViewModel { get; private set; }
+        //public FlyoutViewModel FlyoutViewModel { get; private set; }
 
 
 
@@ -172,12 +172,12 @@ namespace Mailbird.Apps.Calendar.ViewModels
             //this.CalenderPopupViewModel = new CalenderPopupViewModel();
 
             //this.AppointmentPopupViewModel = new AppointmentPopupViewModel();
-            FlyoutViewModel = new FlyoutViewModel
-            {
-                //AddAppointmentAction = AddAppointment,
-                //UpdateAppointmentAction = UpdateAppointment,
-                //RemoveAppointmentAction = RemoveAppointment
-            };
+            //FlyoutViewModel = new FlyoutViewModel
+            //{
+            //    AddAppointmentAction = AddAppointment,
+            //    UpdateAppointmentAction = UpdateAppointment,
+            //    RemoveAppointmentAction = RemoveAppointment
+            //};
 
 
           
@@ -324,7 +324,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
         //#endregion
 
 
-        public void AddAppointment(AppointmentUI appointment)
+        public void InsertAppointment(AppointmentUI appointment)
         {
             var addedAppointment = _calendarsCatalog.InsertAppointment(appointment.Clone());
             if (addedAppointment != null)
@@ -349,9 +349,9 @@ namespace Mailbird.Apps.Calendar.ViewModels
         }
 
 
-        public void RemoveAppointment(object appintmentId)
+        public void DeleteAppointment(AppointmentUI appointment)
         {
-            var toRemoveApt = AppointmentCollection.FirstOrDefault(m => (m.Id == appintmentId.ToString()));
+            var toRemoveApt = AppointmentCollection.FirstOrDefault(m => (m.Id == appointment.Id));
             if (toRemoveApt != null)
             {
                 if (_calendarsCatalog.RemoveAppointment(toRemoveApt.Clone()))
@@ -464,9 +464,10 @@ namespace Mailbird.Apps.Calendar.ViewModels
                 SelectedStartDateTime = scheduler.SelectedInterval.Start,
                 SelectedEndDateTime = scheduler.SelectedInterval.End,
                 AvailableCalenders = _calendarsCatalog.GetCalendars().Select(m => m.Clone()).ToList(),
-                AddAppointmentAction = AddAppointment,
+                DefaultCalender = _calendarsCatalog.GetCalendars().FirstOrDefault(m => (m.CalenderList != null && m.CalenderList.IsPrimary)).Clone(),
+                InsertAppointmentAction = InsertAppointment,
                 UpdateAppointmentAction = UpdateAppointment,
-                RemoveAppointmentAction = RemoveAppointment,
+                DeleteAppointmentAction = DeleteAppointment,
                 LocationSuggestions = SearchMatchingLocation()
             };
 
@@ -503,7 +504,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
             {
                 DXDialog modal = new DXDialog("Reminder Alert !", DialogButtons.Ok)
                 {
-                     Content = new TextBlock() { Text = string.Format("{0} Starts at {1}",toRemindAppointment.Subject, toRemindAppointment.StartDateTime.ToString()) },
+                     Content = new TextBlock() { Text = string.Format("{0} Starts at {1}",toRemindAppointment.Summary, toRemindAppointment.StartDateTime.ToString()) },
                      SizeToContent = System.Windows.SizeToContent.WidthAndHeight,
                      Owner = Application.Current.MainWindow,
                      WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner

@@ -15,14 +15,23 @@ namespace Mailbird.Apps.Calendar.Engine.Repository
             this.collection = collection;
         }
 
-        public List<T> Get()
+        public List<T> Get(bool ignoreDeleted = true)
         {
-            return collection.ToList();
+            var result = collection.ToList();
+            if (ignoreDeleted) { result = result.Where(m => (m.LocalStorageState != LocalStorageDataState.Deleted)).ToList(); }
+
+            return result;
         }
 
-        public T Get(string id)
+        public T Get(string id, bool ignoreDeleted = true)
         {
-            return collection.FirstOrDefault(m => (m.Id.ToString() == id));
+            var result = collection.FirstOrDefault(m => (m.Id == id));
+            if (ignoreDeleted && result != null && result.LocalStorageState == LocalStorageDataState.Deleted)
+            {
+                result = null;
+            }
+        
+            return result;
         }
 
         public T Add(T data, LocalStorageDataState state = LocalStorageDataState.Added)
@@ -54,7 +63,7 @@ namespace Mailbird.Apps.Calendar.Engine.Repository
             data.LocalStorageState = state;
             collection.Remove(dbmodel);
             // If the object is not marked as delete. remove permanently
-            if (data.LocalStorageState != LocalStorageDataState.Deleted)
+            if (data.LocalStorageState == LocalStorageDataState.Deleted)
             {
                 collection.Add(data);
             }
