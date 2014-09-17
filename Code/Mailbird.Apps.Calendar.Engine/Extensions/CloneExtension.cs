@@ -57,7 +57,7 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
                     Status = (source.Status.Equals("cancelled", StringComparison.CurrentCultureIgnoreCase) ?  AppointmentStatus.Cancelled
                              :source.Status.Equals("tentative", StringComparison.CurrentCultureIgnoreCase) ?  AppointmentStatus.UnCertain
                              :AppointmentStatus.Confirmed),
-                    Transparency = (source.Transparency.Equals("transparent", StringComparison.CurrentCultureIgnoreCase) ?  AppointmentTransparency.Transparent
+                    Transparency = (source.Transparency == null || source.Transparency.Equals("transparent", StringComparison.CurrentCultureIgnoreCase) ? AppointmentTransparency.Transparent
                                     :AppointmentTransparency.Opaque),
                     Reminders = (source.Reminders.Overrides != null) 
                                 ? source.Reminders.Overrides.Select(m => m.Clone()).ToList() 

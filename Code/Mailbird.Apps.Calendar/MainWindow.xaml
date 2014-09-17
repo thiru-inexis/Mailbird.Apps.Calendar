@@ -152,7 +152,7 @@
 						                    VerticalAlignment="Stretch"
 						                    ActiveViewType="{Binding Path=SelectedCalenderView, Mode=OneWay, Converter={StaticResource CalenderViewToSchedulerViewConverter}}"
 						                    Visibility="{Binding Path=IsAgendaViewActive, Mode=OneWay, Converter={StaticResource InvertBoolToVisibilityConverter}}"
-                                            
+                                            SelectedAppointmentsBindable="{Binding Path=SelectedAppointments, Mode=TwoWay}"
 						                    EditAppointmentFormShowing="Scheduler_OnEditAppointmentFormShowing"
 						                    GotFocus="UIElement_GotFocus">
 
@@ -202,11 +202,10 @@
                     <dxg:GridControl HorizontalAlignment="Stretch"  
                                      VerticalAlignment="Stretch" 
                                      AutoGenerateColumns="None"
-                                    
                                      Visibility="{Binding Path=IsAgendaViewActive, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                                      ItemsSource="{Binding AppointmentCollection}">
                         <dxg:GridControl.Columns>
-                            <dxg:GridColumn FieldName="Subject" Header="Subject" AllowEditing="False" VisibleIndex="0" MinWidth="100"/>
+                            <dxg:GridColumn FieldName="Summary" Header="Subject" AllowEditing="False" VisibleIndex="0" MinWidth="100"/>
                             <dxg:GridColumn FieldName="StartDateTime" Header="Start Time"  AllowEditing="False" VisibleIndex="1" MinWidth="100"/>
                             <dxg:GridColumn FieldName="EndDateTime"  Header="End Time" AllowEditing="False"  VisibleIndex="2" MinWidth="100"/>
                             <dxg:GridColumn FieldName="Description"  Header="Description"  AllowEditing="False" VisibleIndex="3" MinWidth="100"/>

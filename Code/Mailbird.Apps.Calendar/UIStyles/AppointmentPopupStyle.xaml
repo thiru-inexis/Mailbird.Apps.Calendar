@@ -54,7 +54,7 @@ dx:ThemeManager.ThemeName="MetropolisLight"
                            Text="Subject: " Style="{StaticResource ResourceKey=LabelStyle}"/>
                 <dxe:TextEdit Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
                               Margin="5 5 0 5"
-                              EditValue="{Binding Subject, Mode=TwoWay}" />
+                              EditValue="{Binding Summary, Mode=TwoWay}" />
             </Grid>
          
             <!--Other Appointment Settings-->

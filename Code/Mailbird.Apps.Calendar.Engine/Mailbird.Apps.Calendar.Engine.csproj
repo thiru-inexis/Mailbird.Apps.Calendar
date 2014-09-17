@@ -127,6 +127,7 @@
     <Compile Include="Enums\CalenderProvider.cs" />
     <Compile Include="Enums\LocalStorageDataState.cs" />
     <Compile Include="Enums\SyncTokenType.cs" />
+    <Compile Include="EventArugs\LocalStorageChangedArgs.cs" />
     <Compile Include="EventArugs\RepositoryEventArgs.cs" />
     <Compile Include="Extensions\CloneExtension.cs" />
     <Compile Include="Extensions\EnumExtension.cs" />

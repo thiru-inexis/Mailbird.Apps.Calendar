@@ -70,7 +70,7 @@ namespace Mailbird.Apps.Calendar.Engine.CalenderServices
         /// If the exception thrown is of type Google.GoogleApiException with StatusCode 410('Gone')
         /// The synctoken being used is invalid and a fresh full sync has to be performed with syncToken 'null'
         /// </remarks>
-        public IEnumerable<Metadata.Calendar> GetCalendars(out string nextSyncToken, string syncToken = null, bool showDeletedAlso = false, bool showHiddenAlso = false)
+        public IEnumerable<Metadata.Calendar> GetCalendars(out string nextSyncToken, string syncToken = null, bool showDeletedAlso = true, bool showHiddenAlso = true)
         {
             nextSyncToken = null;
             List<Metadata.Calendar> result = new List<Metadata.Calendar>();
@@ -244,7 +244,7 @@ namespace Mailbird.Apps.Calendar.Engine.CalenderServices
         #region Calender Events {Get|Insert|Update|Delete}
 
 
-        public IEnumerable<Appointment> GetAppointments(out string nextSyncToken, Metadata.Calendar calender, string syncToken = null, bool showDeletedAlso = false)
+        public IEnumerable<Appointment> GetAppointments(out string nextSyncToken, Metadata.Calendar calender, string syncToken = null, bool showDeletedAlso = true)
         {
             nextSyncToken = null;
             List<Metadata.Appointment> result = new List<Appointment>();

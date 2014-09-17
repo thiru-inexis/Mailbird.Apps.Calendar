@@ -29,7 +29,6 @@ namespace Mailbird.Apps.Calendar.ViewModels
         protected List<string> _endTimeSuggestions;
         protected UIModels.ReminderType _selectedReminderType;
         protected int _reminderDuration;
-        protected UIModels.CalenderUI _selectedCalender;
 
         protected List<UIModels.CalenderUI> _availableCalenders;
 
@@ -283,6 +282,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
             {
                 _availableCalenders = value;
                 RaisePropertyChanged(() => AvailableCalenders);
+                RaisePropertyChanged(() => SelectedCalender);
             }
         }
 
@@ -349,15 +349,16 @@ namespace Mailbird.Apps.Calendar.ViewModels
         {
             get 
             {
-                if (_selectedCalender == null && DefaultCalender != null)
+                if (AvailableCalenders == null || !AvailableCalenders.Any()) { return null; }
+                if (_bm.CalendarId == null) 
                 {
-                    _selectedCalender = DefaultCalender;
+                   return AvailableCalenders.FirstOrDefault(m => m.IsPrimary);
                 }
-                return _selectedCalender;
+                return AvailableCalenders.FirstOrDefault(m => m.Id == _bm.CalendarId);
             }
             set
             {
-                _selectedCalender = value;
+                _bm.CalendarId = value.Id;
                 RaisePropertyChanged(() => SelectedCalender);
             }
         }

@@ -62,6 +62,12 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         #region PublicProps
 
+        public ObservableCollection<DevExpress.XtraScheduler.Appointment> SelectedAppointments 
+        { 
+            get;
+            set; 
+        }
+
         public AppointmentPopupViewModel AppointmentPopupViewModel { get; private set; }
         public CalenderPopupViewModel CalenderPopupViewModel { get; private set; }
         //public FlyoutViewModel FlyoutViewModel { get; private set; }
@@ -166,9 +172,10 @@ namespace Mailbird.Apps.Calendar.ViewModels
             _calendarsCatalog = new CalendarsCatalog(_local);
             _syncer = new Synchronizer(_local, _google);
 
-            LoadCalenders();
-            LoadAppointments();
 
+            _local.StorageChanged += OnLocal_StorageChanged;
+
+            LoadResources();
             //this.CalenderPopupViewModel = new CalenderPopupViewModel();
 
             //this.AppointmentPopupViewModel = new AppointmentPopupViewModel();
@@ -192,7 +199,20 @@ namespace Mailbird.Apps.Calendar.ViewModels
             //AppointmentCollection = new ObservableCollection<Appointment>(_calendarsCatalog.GetAppointments());
 
             // Start Async appointment sync
-            //_syncer.AsyncSync();
+            _syncer.AsyncSync();
+        }
+
+        private void OnLocal_StorageChanged(object sender, Engine.EventArugs.LocalStorageChangedArgs e)
+        {
+            LoadResources();
+            
+        }
+
+
+        protected void LoadResources()
+        {
+            LoadCalenders();
+            LoadAppointments();
         }
 
 
@@ -459,16 +479,28 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         public void OpenAppointmentPopUp(SchedulerControl scheduler)
         {
+            UIModels.AppointmentUI selectedAppointment = null;
+            if (scheduler.SelectedAppointments != null && scheduler.SelectedAppointments.Any())
+            {
+                selectedAppointment = _appointmentCollection.FirstOrDefault(m => m.Id == scheduler.SelectedAppointments[0].Id);
+            }
+
             AppointmentPopupViewModel = new AppointmentPopupViewModel()
             {
-                SelectedStartDateTime = scheduler.SelectedInterval.Start,
-                SelectedEndDateTime = scheduler.SelectedInterval.End,
                 AvailableCalenders = _calendarsCatalog.GetCalendars().Select(m => m.Clone()).ToList(),
-                DefaultCalender = _calendarsCatalog.GetCalendars().FirstOrDefault(m => (m.CalenderList != null && m.CalenderList.IsPrimary)).Clone(),
+
+                SelectedAppointment = selectedAppointment,
+                StartDate = (selectedAppointment != null) ? selectedAppointment.StartDateTime: scheduler.SelectedInterval.Start,
+                EndDate = (selectedAppointment != null) ? selectedAppointment.EndDateTime : scheduler.SelectedInterval.End,
+                LocationSuggestions = SearchMatchingLocation(),
+                //SelectedStartDateTime = scheduler.SelectedInterval.Start,
+                //SelectedEndDateTime = scheduler.SelectedInterval.End,
+              
+                //DefaultCalender = _calendarsCatalog.GetCalendars().FirstOrDefault(m => (m.CalenderList != null && m.CalenderList.IsPrimary)).Clone(),
                 InsertAppointmentAction = InsertAppointment,
                 UpdateAppointmentAction = UpdateAppointment,
                 DeleteAppointmentAction = DeleteAppointment,
-                LocationSuggestions = SearchMatchingLocation()
+                
             };
 
             UIStyles.AppointmentPopupStyle modal = new UIStyles.AppointmentPopupStyle();

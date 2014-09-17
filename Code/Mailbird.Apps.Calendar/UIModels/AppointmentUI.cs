@@ -11,6 +11,7 @@ namespace Mailbird.Apps.Calendar.UIModels
         private Engine.Metadata.Appointment _bm;
         private bool _isAllDayAppointment;
 
+
         public Engine.Metadata.Appointment BaseModel
         {
             get { return _bm; }
@@ -25,6 +26,16 @@ namespace Mailbird.Apps.Calendar.UIModels
             {
                 _bm.Id = value;
                 RaisePropertyChanged(() => Id);
+            }
+        }
+
+        public string CalendarId
+        {
+            get { return _bm.CalendarId; }
+            set
+            {
+                _bm.CalendarId = value;
+                RaisePropertyChanged(() => CalendarId);
             }
         }
 
@@ -119,15 +130,15 @@ namespace Mailbird.Apps.Calendar.UIModels
             }
             set 
             {
-                var apt = new DevExpress.XtraScheduler.Appointment(DevExpress.XtraScheduler.AppointmentType.Normal, _bm.StartTime, _bm.EndTime);
-                var helper = DevExpress.XtraScheduler.Xml.ReminderCollectionXmlPersistenceHelper.ObjectFromXml(apt, value, DevExpress.XtraScheduler.DateSavingType.LocalTime);
-                _bm.Reminders.Clear();
+                //var apt = new DevExpress.XtraScheduler.Appointment(DevExpress.XtraScheduler.AppointmentType.Normal, _bm.StartTime, _bm.EndTime);
+                //var helper = DevExpress.XtraScheduler.Xml.ReminderCollectionXmlPersistenceHelper.ObjectFromXml(apt, value, DevExpress.XtraScheduler.DateSavingType.LocalTime);
+                //_bm.Reminders.Clear();
 
-                foreach (var rem in helper)
-                {
+                //foreach (var rem in helper)
+                //{
 
 
-                }
+                //}
 
                 var sample = value;
             }
@@ -142,6 +153,10 @@ namespace Mailbird.Apps.Calendar.UIModels
                 RaisePropertyChanged(() => Description);
             }
         }
+
+
+
+
 
 
         public AppointmentUI()

@@ -23,6 +23,8 @@ namespace Mailbird.Apps.Calendar.Engine.CalenderServices
         public BaseRepository<Metadata.SyncToken> SyncRepo { get; set; }
 
 
+        public event EventHandler<EventArugs.LocalStorageChangedArgs> StorageChanged;
+
         public CalenderProvider Name
         {
             get { return CalenderProvider.Local; }
@@ -55,7 +57,13 @@ namespace Mailbird.Apps.Calendar.Engine.CalenderServices
         {
             _worker.Write(_localStorage);
             LoadFromStore();
+
+            if (this.StorageChanged != null)
+            { 
+                this.StorageChanged(this, new EventArugs.LocalStorageChangedArgs("Changed"));
+            }
         }
+
 
         private void SyncRepo_ItemCollectionChanged(object sender, EventArugs.RepositoryChangedArgs<SyncToken> e)
         {
