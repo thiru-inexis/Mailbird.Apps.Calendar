@@ -1,0 +1,61 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:dxschcore="clr-namespace:DevExpress.XtraScheduler;assembly=DevExpress.XtraScheduler.v14.1.Core" 
+                    xmlns:dxscht="http://schemas.devexpress.com/winfx/2008/xaml/scheduler/themekeys" 
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+                    xmlns:cs="colorscheme_ignorable_uri"  mc:Ignorable="cs" >
+
+    <!--Window | Dialog | Popup | Message box Background-->
+    <SolidColorBrush x:Key="AccentColorBrush" Color="White"/>
+    <!--TYPE 1  Controls Background-->
+    <SolidColorBrush x:Key="AccentColorBrush1" Color="Transparent"/>
+    <!--TYPE 1 Controls | Text Foreground-->
+    <SolidColorBrush x:Key="AccentColorBrush2" Color="Black"/>
+    <!--TYPE 2 Controls Background-->
+    <SolidColorBrush x:Key="AccentColorBrush3" Color="#366092"/>
+    <!--TYPE 2 Controls | Text Foreground-->
+    <SolidColorBrush x:Key="AccentColorBrush4" Color="White"/>
+    <!--Split lines-->
+    <SolidColorBrush x:Key="AccentColorBrush5" Color="Gray"/>
+
+
+
+    <!--Colors in Use-->
+    <SolidColorBrush x:Key="AppointmentBackgroundColor" Color="#366092" cs:Name="SolidColorBrush_0001"></SolidColorBrush>
+    <SolidColorBrush x:Key="AppointmentForegroundColor" Color="#FFFFFF" cs:Name="SolidColorBrush_0002"></SolidColorBrush>
+    <SolidColorBrush x:Key="AppointmentSelectBorderColor" Color="#bbbbbb" cs:Name="SolidColorBrush_0003"></SolidColorBrush>
+    <SolidColorBrush x:Key="CellBackgroundColor" Color="#ffffff" cs:Name="SolidColorBrush_0004"></SolidColorBrush>
+    <SolidColorBrush x:Key="CellBorderColor" Color="#e1e1e1" cs:Name="SolidColorBrush_0005"></SolidColorBrush>
+    <SolidColorBrush x:Key="CellSelectColor" Color="#ebeff4" cs:Name="SolidColorBrush_0006"></SolidColorBrush>
+    <SolidColorBrush x:Key="HeaderFontColor" Color="#366092" cs:Name="SolidColorBrush_0007"></SolidColorBrush>
+    <SolidColorBrush x:Key="DateNavigatorSelectBackground" Color="#ebeff4" cs:Name="SolidColorBrush_0008"></SolidColorBrush>
+    <SolidColorBrush x:Key="DateNavigatorSelectBorder" Color="#b8d2ee" cs:Name="SolidColorBrush_0009"></SolidColorBrush>
+    <SolidColorBrush x:Key="DateNavigatorHeader" Color="#707784" cs:Name="SolidColorBrush_0009"></SolidColorBrush>
+    <SolidColorBrush x:Key="DateNavigatorWeekAbbrivation" Color="#bbbbbb" cs:Name="SolidColorBrush_0010"></SolidColorBrush>
+    <!--Colors in Use-->
+
+
+
+
+    <SolidColorBrush x:Key="McControlBackgroundBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="McControlForegroundBrush" />
+
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFF"/>
+    <SolidColorBrush x:Key="ScrollBarDisabledBackground" Color="#F4F4F4"/>
+    <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
+    <SolidColorBrush x:Key="CheckBoxFillNormal" Color="#F4F4F4"/>
+    <LinearGradientBrush x:Key="VerticalScrollBarBackground" EndPoint="1,0" StartPoint="0,0">
+        <GradientStop Color="#E1E1E1" Offset="0"/>
+        <GradientStop Color="#EDEDED" Offset="0.20"/>
+        <GradientStop Color="#EDEDED" Offset="0.80"/>
+        <GradientStop Color="#E3E3E3" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="HorizontalScrollBarBackground" EndPoint="0,1" StartPoint="0,0">
+        <GradientStop Color="#E1E1E1" Offset="0"/>
+        <GradientStop Color="#EDEDED" Offset="0.20"/>
+        <GradientStop Color="#EDEDED" Offset="0.80"/>
+        <GradientStop Color="#E3E3E3" Offset="1"/>
+    </LinearGradientBrush>
+
+
+</ResourceDictionary>

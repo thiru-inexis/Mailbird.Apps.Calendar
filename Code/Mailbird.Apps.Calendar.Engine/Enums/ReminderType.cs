@@ -5,11 +5,16 @@ using System.Text;
 
 namespace Mailbird.Apps.Calendar.Engine.Enums
 {
+    /// <summary>
+    /// Represents the appointment reminder type
+    /// Maps with iCal format
+    /// </summary>
     public enum ReminderType
     {
-        Email = 0,
-        PopUp = 1,
-        Sms = 2
+        PopUp = 0,
+        Audio = 1,
+        Email = 2,
+        Sms = 3
     }
 
 

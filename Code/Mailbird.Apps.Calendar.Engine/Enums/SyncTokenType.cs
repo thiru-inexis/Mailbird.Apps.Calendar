@@ -6,12 +6,25 @@ using System.Text;
 namespace Mailbird.Apps.Calendar.Engine.Enums
 {
     /// <summary>
-    /// Goolge uses different token for different calender resources.
+    /// This is for google calendar sysnc purpose.
+    /// Differnt tokens are used for different entities and this provides the 
+    /// supported token types.
     /// </summary>
     public enum SyncTokenType
     {
-        Calendar = 1,
-        CalenderAppointments = 2,
-        ColorDefinition = 3
+        /// <summary>
+        /// For calendars and calenderlist
+        /// </summary>
+        Calendar = 0,
+
+        /// <summary>
+        /// For Appointments specific to a calendar
+        /// </summary>
+        CalenderAppointments = 1,
+
+        /// <summary>
+        /// For color pallets
+        /// </summary>
+        ColorDefinition = 2
     }
 }

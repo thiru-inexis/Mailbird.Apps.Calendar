@@ -9,6 +9,50 @@ namespace Mailbird.Apps.Calendar.Engine.Interfaces
     public interface ICalendarCatalog
     {
 
+        #region User Contracts
+
+        /// <summary>
+        /// return all users
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<Metadata.UserInfo> GetUsers();
+
+
+        /// <summary>
+        /// Get user by Id
+        /// </summary>
+        /// <returns></returns>
+        Metadata.UserInfo GetUSer(string userId);
+
+
+        /// <summary>
+        /// insert user
+        /// </summary>
+        /// <param name="user">user to insert</param>
+        /// <returns>The newly added user, If failed value will be null</returns>
+        Metadata.UserInfo InsertUser(Metadata.UserInfo user);
+
+
+        /// <summary>
+        /// update existing user
+        /// </summary>
+        /// <param name="user">user to update</param>
+        /// <returns>The updated user, If failed value will be null</returns>
+        Metadata.UserInfo UpdateUser(Metadata.UserInfo user);
+
+
+        /// <summary>
+        /// remove user
+        /// </summary>
+        /// <param name="user">user to remove</param>
+        ///// <returns>True is success, else False.</returns>
+        bool RemoveUser(Metadata.UserInfo user);
+
+
+        #endregion
+
+
+
         #region Calender Contracts
 
         /// <summary>
@@ -66,6 +110,14 @@ namespace Mailbird.Apps.Calendar.Engine.Interfaces
         /// <param name="calendarId">calendar uniq identifier</param>
         /// <returns></returns>
         IEnumerable<Appointment> GetAppointments(string calendarId);
+
+
+        /// <summary>
+        /// Get and appointment by Id
+        /// </summary>
+        /// <param name="appointmentId">Id of the to-fetch appointment</param>
+        /// <returns>Appointment object if keys match, else null</returns>
+        Appointment GetAppointment(string appointmentId);
 
 
         /// <summary>

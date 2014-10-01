@@ -1,86 +1,95 @@
-﻿<dx:DXWindow x:Class="Mailbird.Apps.Calendar.UIStyles.AppointmentPopupStyle"
+﻿<UserControl x:Class="Mailbird.Apps.Calendar.UIStyles.AppointmentPopupStyle"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-                xmlns:viewModels="clr-namespace:Mailbird.Apps.Calendar.ViewModels"
+             xmlns:uiModels="clr-namespace:Mailbird.Apps.Calendar.UIModels"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-              xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+             xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
              xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
-              xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
-dx:ThemeManager.ThemeName="MetropolisLight"
-             mc:Ignorable="d" Height="450" Width="600" Title="{Binding Title}" ResizeMode="NoResize"  >
+             xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+             xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+             xmlns:viewModels="clr-namespace:Mailbird.Apps.Calendar.ViewModels"
+             dx:ThemeManager.ThemeName="MetropolisLight">
 
 
-    <dx:DXWindow.DataContext>
-        <viewModels:AppointmentPopupViewModel/>
-    </dx:DXWindow.DataContext>
-
-    <dx:DXWindow.Resources>
+    <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Fonts.xaml"/>
                 <ResourceDictionary Source="EditorStyles.xaml"/>
                 <ResourceDictionary Source="GeneralStyle.xaml"/>
+                <ResourceDictionary Source="VectorGeometries.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </dx:DXWindow.Resources>
+    </UserControl.Resources>
 
+    <dxmvvm:Interaction.Behaviors>
+        <dxmvvm:CurrentWindowService />
+    </dxmvvm:Interaction.Behaviors>
 
-    <Grid Margin="5" Grid.IsSharedSizeScope="True">
+    <Grid Style="{StaticResource McMasterGrid}" MinWidth="650" Grid.IsSharedSizeScope="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" Tag="Input Controls"/>
+            <RowDefinition Height="1" Tag="Seperator"/>
             <RowDefinition Height="auto" Tag="Action Buttons"/>
         </Grid.RowDefinitions>
 
         <!--Input Controls-->
-        <Grid Grid.Row="0" Margin="0" >
+        <Grid Grid.Row="0" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" Tag="Subject"/>
+                <RowDefinition Height="1" Tag="Seperator"/>
                 <RowDefinition Height="*" Tag="Other Settings"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" Tag="Appointment Settings"/>
-                <ColumnDefinition Width="1*" Tag="Guests Settings"/>
+                <ColumnDefinition Width="*" Tag="Appointment Settings"/>
+                <ColumnDefinition Width="1"  Tag="Seperator"/>
+                <ColumnDefinition Width="250" Tag="Guests Settings"/>
             </Grid.ColumnDefinitions>
-            
+
             <!--Subject-->
-            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" Tag="Labels" SharedSizeGroup="ColLables"/>
                     <ColumnDefinition Width="*" Tag="Controls"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Subject: " Style="{StaticResource ResourceKey=LabelStyle}"/>
+                <TextBlock Grid.Row="0" Grid.Column="0"
+                               Style="{StaticResource McLabelStyle}"
+                               Text="Subject: "/>
                 <dxe:TextEdit Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
-                              Margin="5 5 0 5"
-                              EditValue="{Binding Summary, Mode=TwoWay}" />
+                                  Style="{StaticResource McTextInputControlStyle}"
+                                  EditValue="{Binding Summary, Mode=TwoWay}" />
             </Grid>
-         
+
+            <!--Seperator-->
+            <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                    Style="{StaticResource McGridBorder}"/>
+
             <!--Other Appointment Settings-->
-            <Grid Grid.Row="1" Grid.Column="0" 
-                  Margin="0 0 5 0">
+
+            <Grid  Grid.Row="2" Grid.Column="0" Margin="0 0 5 10" Style="{StaticResource McInnerLeftGrid}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" Tag="Labels" SharedSizeGroup="ColLables"/>
                     <ColumnDefinition Width="*" Tag="Controls"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="1*" Tag="Where/Location" />
-                    <RowDefinition Height="3*" Tag="Description" />
-                    <RowDefinition Height="3*" Tag="Date Time Settings"/>
-                    <RowDefinition Height="1*" Tag="Reminder" />
-                    <RowDefinition Height="1*" Tag="Show me as" />
+                    <RowDefinition Height="auto" Tag="Where/Location" />
+                    <RowDefinition Height="*"    Tag="Description" />
+                    <RowDefinition Height="auto" Tag="Date Time Settings"/>
+                    <RowDefinition Height="auto" Tag="Reminder" />
+                    <RowDefinition Height="auto" Tag="Show me as" />
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Where: " Style="{StaticResource ResourceKey=LabelStyle}"/>
+                           Style="{StaticResource McLabelStyle}"
+                           Text="Where: "/>
                 <TextBlock Grid.Row="1" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Description: " Style="{StaticResource ResourceKey=LabelStyle}"/>
-                
+                           Style="{StaticResource McLabelStyle}"
+                           Text="Description: "/>
+
                 <dxe:ComboBoxEdit Grid.Row="0" Grid.Column="1"
-                                  Margin="5 5 0 5" 
+                                  Style="{StaticResource McComboInputControlStyle}"
                                   AutoComplete="True" AllowDefaultButton="False" 
                                   IsTextEditable="True" AllowItemHighlighting="False"
                                   EditValue="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
@@ -88,7 +97,7 @@ dx:ThemeManager.ThemeName="MetropolisLight"
                                   IsPopupOpen="{Binding IsLocationPopupOpen , Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 </dxe:ComboBoxEdit>
                 <dxe:TextEdit Grid.Row="1" Grid.Column="1"
-                              Margin="5 5 0 5"
+                              Style="{StaticResource McTextInputControlStyle}"
                               EditValue="{Binding Description, Mode=TwoWay}"
                               TextWrapping="Wrap" AcceptsReturn="True" 
                               VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
@@ -96,34 +105,32 @@ dx:ThemeManager.ThemeName="MetropolisLight"
                 <Grid Grid.Row="2"  Grid.ColumnSpan="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" SharedSizeGroup="ColLables"/>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="1*" Tag="All day event"/>
-                        <RowDefinition Height="1*" Tag="From date time"/>
-                        <RowDefinition Height="1*" Tag="To date time"/>
+                        <RowDefinition Height="auto" Tag="All day event"/>
+                        <RowDefinition Height="auto" Tag="From date time"/>
+                        <RowDefinition Height="auto" Tag="To date time"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="1" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="From: " Style="{StaticResource ResourceKey=LabelStyle}"/>
+                               Style="{StaticResource ResourceKey=McLabelStyle}"
+                               Text="From: " />
                     <TextBlock Grid.Row="2" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="To: " Style="{StaticResource ResourceKey=LabelStyle}"/>
+                               Style="{StaticResource ResourceKey=McLabelStyle}"
+                               Text="To: "/>
 
                     <dxe:CheckEdit Grid.Row="0" Grid.Column="1" 
-                               Margin="5 5 0 5" Content="All day event"
+                                   Style="{StaticResource McCheckBoxControlStyle}" Content="All day event"
                                    IsChecked="{Binding IsAllDayAppointment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <dxe:DateEdit Grid.Row="1" Grid.Column="1" 
-                              Margin="5 5 0 5" HorizontalAlignment="Left"     
-                              EditValue="{Binding StartDate, Mode=TwoWay}"  
-                              Style="{StaticResource DateEditStyle}"/>
+                                  Style="{StaticResource McDateEditStyle}"
+                                  EditValue="{Binding StartDate, Mode=TwoWay}"/>
 
-                 
                     <dxe:ComboBoxEdit Grid.Row="1" Grid.Column="2"
-                                      Margin="5 5 0 5" HorizontalAlignment="Stretch"
+                                      Style="{StaticResource McComboInputControlStyle}"
                                       IsTextEditable="True" 
                                       EditValue="{Binding Path=StartTime , Converter={StaticResource TimeSpanToStringConverter}}" 
                                       ItemsSource="{Binding Path=StartTimeSuggestions}"
@@ -137,12 +144,11 @@ dx:ThemeManager.ThemeName="MetropolisLight"
                     </dxe:ComboBoxEdit>
 
                     <dxe:DateEdit Grid.Row="2" Grid.Column="1" 
-                              Margin="5 5 0 5" HorizontalAlignment="Left"     
-                              EditValue="{Binding EndDate, Mode=TwoWay}"  
-                              Style="{StaticResource DateEditStyle}"/>
+                                  Style="{StaticResource McDateEditStyle}"
+                                  EditValue="{Binding EndDate, Mode=TwoWay}"/>
 
                     <dxe:ComboBoxEdit Grid.Row="2" Grid.Column="2"
-                                      Margin="5 5 0 5" HorizontalAlignment="Stretch"
+                                      Style="{StaticResource McComboInputControlStyle}"
                                       IsTextEditable="True" 
                                       EditValue="{Binding Path=EndTime , Converter={StaticResource TimeSpanToStringConverter}}" 
                                       ItemsSource="{Binding Path=EndTimeSuggestions}"
@@ -163,37 +169,36 @@ dx:ThemeManager.ThemeName="MetropolisLight"
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Reminder: " Style="{StaticResource ResourceKey=LabelStyle}"/>
+                               Style="{StaticResource ResourceKey=McLabelStyle}"
+                               Text="Reminder: " />
 
                     <dxe:TextEdit Grid.Row="0" Grid.Column="1" Width="30"
-                                  Margin="5 5 5 5" VerticalAlignment="Stretch"
-                                  HorizontalContentAlignment="Center"
+                                  Style="{StaticResource McTextInputControlStyle}"
                                   EditValue="{Binding Path=ReminderDuration}"
-                                  MaskType="RegEx" Mask="\d+"
-                                  />
+                                  MaskType="RegEx" Mask="\d+"/>
 
                     <dxe:ComboBoxEdit Grid.Row="0" Grid.Column="2"
-                                      Margin="5 5 0 5" HorizontalAlignment="Stretch"
+                                      Style="{StaticResource McComboInputControlStyle}"
                                       IsTextEditable="False"
                                       ItemsSource="{Binding Path=SupportedReminderTypes}"
                                       SelectedItem="{Binding Path=SelectedReminderType}"/>
 
                     <TextBlock Grid.Row="0" Grid.Column="3"
-                               Margin="5 5 0 5" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                               TextAlignment="Left"
+                               Style="{StaticResource McLabelStyle}"
+                               VerticalAlignment="Center" HorizontalAlignment="Stretch"
                                Text=" before"/>
                 </Grid>
 
                 <TextBlock Grid.Row="4" Grid.Column="0" 
-                           Margin="0 5 5 5" VerticalAlignment="Top"
-                           Text="Show me as: " Style="{StaticResource ResourceKey=LabelStyle}"/>
-                <dxe:ListBoxEdit Grid.Row="4" Grid.Column="1"  
-                                 Margin="5 5 0 5" VerticalAlignment="Stretch"
+                           Style="{StaticResource ResourceKey=McLabelStyle}"
+                           Text="Show me as: " />
+
+                <dxe:ListBoxEdit Grid.Row="4" Grid.Column="1" 
+                                 Style="{StaticResource McRadioListBoxControlStyle}"
                                  ItemsSource="{Binding Path=AvailableTransparencies}"
                                  SelectedItem="{Binding Path=SelectedTransparency}">
                     <dxe:ListBoxEdit.ItemsPanel>
@@ -201,63 +206,155 @@ dx:ThemeManager.ThemeName="MetropolisLight"
                             <StackPanel Orientation="Horizontal" />
                         </ItemsPanelTemplate>
                     </dxe:ListBoxEdit.ItemsPanel>
-                    <!--<dxe:ListBoxEdit.Items>
-                        <RadioButton Content="sdsd"/>
-                        <dxe:ListBoxEditItem Content="Busy"/>
-                        <dxe:ListBoxEditItem Content="Free"/>
-                    </dxe:ListBoxEdit.Items>-->
                     <dxe:ListBoxEdit.StyleSettings>
                         <dxe:RadioListBoxEditStyleSettings/>
                     </dxe:ListBoxEdit.StyleSettings>
                 </dxe:ListBoxEdit>
-
-                <!--<dxe:ListBoxEdit Grid.Row="5" Grid.Column="1"  
-                                 Margin="5 5 0 5"  VerticalAlignment="Stretch">
-                    <dxe:ListBoxEdit.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </dxe:ListBoxEdit.ItemsPanel>
-                    <dxe:ListBoxEdit.Items>
-                        <dxe:ListBoxEditItem Content="Default"/>
-                        <dxe:ListBoxEditItem Content="Private"/>
-                        <dxe:ListBoxEditItem Content="Public"/>
-                    </dxe:ListBoxEdit.Items>
-                    <dxe:ListBoxEdit.StyleSettings>
-                        <dxe:RadioListBoxEditStyleSettings/>
-                    </dxe:ListBoxEdit.StyleSettings>
-                </dxe:ListBoxEdit>-->
-                
-
             </Grid>
+
+
+            <Border Grid.Row="2" Grid.Column="1"
+                    Style="{StaticResource McGridBorder}" BorderThickness="10" >
+            </Border>
 
             <!--Appointment Quest Settings-->
-            <Grid Grid.Row="1" Grid.Column="1" 
-                  Margin="5 0 0 0">
-                <TextBlock Text="Guests"/>
+
+            <Grid Grid.Row="2" Grid.Column="2" Margin="5 0 0 10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" Tag="Add Quests Header"/>
+                    <RowDefinition Height="auto" Tag="Add Quests Input"/>
+                    <RowDefinition Height="*"    Tag="Added Quests List"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Style="{StaticResource McLabelStyle}" Margin="0 5 0 0"
+                           Text="Add Quests "/>
+                <dxe:TextEdit Grid.Row="1" Margin="0 5 0 5"
+                              Style="{StaticResource McTextInputControlStyle}" 
+                              EditValue="{Binding ToAddQuestEmail, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              TextWrapping="Wrap" AcceptsReturn="False" MaskAutoComplete="None"
+                              MaskType="RegEx" Mask="[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}">
+                    <dxmvvm:Interaction.Triggers>
+                        <dxmvvm:EventToCommand EventName="KeyDown" Command="{Binding AddQuestUICommand}" PassEventArgsToCommand="True" EventArgsConverter="{StaticResource KeyDownEventArgsConverter}"/>
+                    </dxmvvm:Interaction.Triggers>
+                </dxe:TextEdit>
+
+                <!--ItemsSource="{Binding CalenderCollection, Mode=OneWay}"-->
+                <ListBox x:Name="appointmentQuests" Grid.Row="2"
+                         VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                         HorizontalContentAlignment="Stretch"
+                         ItemsSource="{Binding Quests}">
+                    <!--<ListBoxItem HorizontalContentAlignment="Stretch">-->
+
+                    <!--<Grid  HorizontalAlignment="Stretch" Height="40" Margin="0 0 0 5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Grid.Column="0" 
+                                   Source="{Binding , TargetNullValue={x:Null}}" Stretch="UniformToFill"
+                                   Height="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Height}"
+                                   Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Height}">
+                                <Image.Clip>
+                                    <EllipseGeometry Center="20,20" 
+                                                     RadiusX="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Center.X}"
+                                                     RadiusY="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Center.Y}"/>
+                                </Image.Clip>
+                            </Image>
+
+                            <StackPanel Grid.Column="1" Orientation="Vertical" 
+                                        Margin="5 0 0 0" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource McAddQuestLabelStyle}" 
+                                           HorizontalAlignment="Stretch" >First Last</TextBlock>
+                                <TextBlock Style="{StaticResource McAddQuestLabelStyle}" 
+                                           HorizontalAlignment="Stretch">email@domain.com</TextBlock>
+                            </StackPanel>
+                            <Button HorizontalAlignment="Right" Grid.Column="2" 
+                                    Height="10"
+                    Margin="5 0 0 0" Content="Remove" ToolTip="Remove (Remove Quest)"
+                    Style="{StaticResource McSmallButtonStyle}" 
+                    Template="{StaticResource McRemoveIcon}"
+                    Command="{Binding RemoveQuestUICommand}" 
+                    Visibility="{Binding Path=DeleteUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
+                        </Grid>
+                    </ListBoxItem>-->
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type uiModels:ContactUI}">
+                            <Grid HorizontalAlignment="Stretch" Height="40" Margin="0 0 0 5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" MinWidth="40"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20" MaxWidth="20"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Image Grid.Column="0" 
+                                   Source="{Binding ProfileImgPath, TargetNullValue={x:Null}}" Stretch="UniformToFill"
+                                   Height="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Height}"
+                                   Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Height}">
+                                    <Image.Clip>
+                                        <EllipseGeometry Center="20,20" 
+                                                     RadiusX="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Center.X}"
+                                                     RadiusY="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Center.Y}"/>
+                                    </Image.Clip>
+                                </Image>
+                                <!--McUserProfileNoImage-->
+                                <StackPanel Grid.Column="1" Orientation="Vertical" 
+                                        Margin="5 0 0 0" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                                    <TextBlock Style="{StaticResource McAddQuestLabelStyle}" 
+                                               Text="{Binding FirstName}" HorizontalAlignment="Stretch"/>
+                                    <TextBlock Style="{StaticResource McAddQuestLabelStyle}" 
+                                               Text="{Binding Email}" HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+
+                                <Button HorizontalAlignment="Right" Grid.Column="2" Height="10"
+                                        Margin="5 0 0 0" Content="Remove" ToolTip="Remove (Remove Quest)"
+                                        Style="{StaticResource McSmallButtonStyle}" 
+                                        Template="{StaticResource McRemoveIcon}">
+                                    <dxmvvm:Interaction.Triggers>
+                                        <dxmvvm:EventToCommand EventName="Click" Command="{Binding ElementName=appointmentQuests, Path=DataContext.RemoveQuestUICommand}"
+                                                               CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type ListBoxItem}}}"
+                                                               PassEventArgsToCommand="False" EventArgsConverter="{StaticResource ListBoxItemClickEventArgsConverter}"/>
+                                    </dxmvvm:Interaction.Triggers>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
             </Grid>
+
+
 
         </Grid>
 
+        <!--Seperator-->
+        <Border Grid.Row="1" Style="{StaticResource McGridBorder}"/>
+
         <!--Action Controls/Buttons-->
-        <Grid Grid.Row="1" Margin="0 20 0 0">
+        <Grid Grid.Row="2" Margin="0 10 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" Tag="Add/Update Button"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto" Tag="Calender Selection"/>
                 <ColumnDefinition Width="auto" Tag="Delete Button"/>
             </Grid.ColumnDefinitions>
-            <!--onverter={StaticResource ToRgbStringConverter}}-->
+
             <Button HorizontalAlignment="Left" Grid.Column="0" 
-                    Padding="20 3" Margin="0 0 10 0" Content="Add" 
+                    Content="Save" ToolTip="Save (Add new Appointment)"
+                    Style="{StaticResource McSmallButtonStyle}"
                     Command="{Binding InsertUICommand}" 
                     Visibility="{Binding Path=InsertUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
+
             <Button HorizontalAlignment="left" Grid.Column="0" 
-                    Padding="20 3" Margin="0 0 10 0" Content="Update" 
+                    Content="Save" ToolTip="Save (Update Appointment)"
+                    Style="{StaticResource McSmallButtonStyle}"
                     Command="{Binding UpdateUICommand}"
                     Visibility="{Binding Path=UpdateUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
-            <dxe:ComboBoxEdit Grid.Column="2" Width="auto"
-                              Margin="10 0 0 0"
+
+            <dxe:ComboBoxEdit Grid.Column="2" MinWidth="100"
+                              Style="{StaticResource McComboInputControlStyle}" Margin="5 0 0 0"
                               IsTextEditable="False"
                               ApplyItemTemplateToSelectedItem="True"
                               ItemsSource="{Binding Path=AvailableCalenders}"
@@ -276,40 +373,12 @@ dx:ThemeManager.ThemeName="MetropolisLight"
             </dxe:ComboBoxEdit>
 
             <Button HorizontalAlignment="Right" Grid.Column="3" 
-                    Padding="20 3" Margin="10 0 0 0" Content="Delete" 
+                    Margin="10 0 0 0" Content="Delete" ToolTip="Delete (Delete Appointment)"
+                    Style="{StaticResource McSmallButtonStyle}" 
+                    Template="{StaticResource McDeleteIcon}"
                     Command="{Binding DeleteUICommand}" 
                     Visibility="{Binding Path=DeleteUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
         </Grid>
-
-        <!--<Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto" Tag="Delete Button"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="auto" Tag="Add/Update Button"/>
-                <ColumnDefinition Width="auto" Tag="Cancel Button"/>
-            </Grid.ColumnDefinitions>
-            --><!--onverter={StaticResource ToRgbStringConverter}}--><!--
-            <Button HorizontalAlignment="Left" Grid.Column="0" 
-                    Padding="20 3" Content="Delete" 
-                    Command="{Binding DeleteUICommand}" 
-                    Visibility="{Binding Path=DeleteUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
-            <Button HorizontalAlignment="Right" Grid.Column="2" 
-                    Padding="20 3" Margin="0 0 10 0" Content="Add" 
-                    Command="{Binding InsertUICommand}" 
-                    Visibility="{Binding Path=InsertUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
-            <Button HorizontalAlignment="Right" Grid.Column="2" 
-                    Padding="20 3" Margin="0 0 10 0" Content="Update" 
-                    Command="{Binding UpdateUICommand}"
-                    Visibility="{Binding Path=UpdateUICommand, Converter={StaticResource ObjToVisibilityConverter}}"/>
-            <Button HorizontalAlignment="Right" Grid.Column="3" 
-                    Padding="20 3" Content="Cancel" 
-                    Command="{Binding CancelUICommand}" />
-        </Grid>-->
-
-
-
-
     </Grid>
 
-
-</dx:DXWindow>
+</UserControl>

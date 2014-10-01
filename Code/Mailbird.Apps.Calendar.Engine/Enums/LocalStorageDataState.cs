@@ -6,7 +6,7 @@ using System.Text;
 namespace Mailbird.Apps.Calendar.Engine.Enums
 {
     /// <summary>
-    /// This represent the state of the data records in local storage.
+    /// This represent the state of the record in local storage.
     /// </summary>
     public enum LocalStorageDataState
     {

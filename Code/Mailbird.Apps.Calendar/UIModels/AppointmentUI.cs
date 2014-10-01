@@ -8,6 +8,7 @@ namespace Mailbird.Apps.Calendar.UIModels
 {
     public class AppointmentUI : NotificationObject
     {
+
         private Engine.Metadata.Appointment _bm;
         private bool _isAllDayAppointment;
 
@@ -64,10 +65,8 @@ namespace Mailbird.Apps.Calendar.UIModels
             get { return _bm.StartTime; }
             set
             {
-                //var newEndDate = EndDateTime.Add(value.Subtract(StartDateTime));
                 _bm.StartTime = value;
                 RaisePropertyChanged(() => StartDateTime);
-                //EndDateTime = newEndDate;
             }
         }
 
@@ -76,7 +75,6 @@ namespace Mailbird.Apps.Calendar.UIModels
             get { return _bm.EndTime; }
             set
             {
-                //if (value > StartDateTime) { return; }
                 _bm.EndTime = value;
                 RaisePropertyChanged(() => EndDateTime);
             }
@@ -134,12 +132,6 @@ namespace Mailbird.Apps.Calendar.UIModels
                 //var helper = DevExpress.XtraScheduler.Xml.ReminderCollectionXmlPersistenceHelper.ObjectFromXml(apt, value, DevExpress.XtraScheduler.DateSavingType.LocalTime);
                 //_bm.Reminders.Clear();
 
-                //foreach (var rem in helper)
-                //{
-
-
-                //}
-
                 var sample = value;
             }
         }
@@ -154,8 +146,25 @@ namespace Mailbird.Apps.Calendar.UIModels
             }
         }
 
+        public string BackgroundColor
+        {
+            get { return _bm.Color.Background; }
+            set
+            {
+                _bm.Color.Background = value;
+                RaisePropertyChanged(() => BackgroundColor);
+            }
+        }
 
-
+        public string ForegroundColor
+        {
+            get { return _bm.Color.Foreground; }
+            set
+            {
+                _bm.Color.Foreground = value;
+                RaisePropertyChanged(() => ForegroundColor);
+            }
+        }
 
 
 
@@ -165,6 +174,8 @@ namespace Mailbird.Apps.Calendar.UIModels
             _bm = new Engine.Metadata.Appointment();
             _isAllDayAppointment = StartDateTime.TimeOfDay.Equals(EndDateTime.TimeOfDay).Equals(TimeSpan.Zero);
         }
+
+
 
         public AppointmentUI(Engine.Metadata.Appointment appointment)
             : this()

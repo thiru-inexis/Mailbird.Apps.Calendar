@@ -16,6 +16,34 @@ namespace Mailbird.Apps.Calendar.Extensions
   
     public static class CloneExtension
     {
+        public static UIModels.UserInfoUI Clone(this Engine.Metadata.UserInfo source)
+        {
+            UIModels.UserInfoUI result = null;
+
+            if (source != null)
+            {
+                result = new UIModels.UserInfoUI(source);
+            }
+
+            return result;
+        }
+
+
+        public static Engine.Metadata.UserInfo Clone(this UIModels.UserInfoUI source)
+        {
+            Engine.Metadata.UserInfo result = null;
+
+            if (source != null)
+            {
+                result = source.BaseModel;
+            }
+
+            return result;
+        }
+
+
+
+
        
         public static UIModels.CalenderUI Clone(this Engine.Metadata.Calendar source)
         {

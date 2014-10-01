@@ -6,6 +6,8 @@ using Mailbird.Apps.Calendar.Engine.Metadata;
 using Mailbird.Apps.Calendar.Engine.CalenderServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Mailbird.Apps.Calendar.Engine.Interfaces;
+
 
 namespace Mailbird.Apps.Calendar.Engine
 {
@@ -18,17 +20,16 @@ namespace Mailbird.Apps.Calendar.Engine
 
         #endregion
 
+        private ICalendarServicesFacade _facade;
+
         public bool IsSynchronozing { get; private set; }
-        public LocalCalenderService _localStorage;
-        public GoogleCalendarService _googleStorage;
         private CancellationTokenSource _syncCts;
 
 
-        public Synchronizer(LocalCalenderService localProvider, GoogleCalendarService googleProvider)
+        public Synchronizer()
         {
             IsSynchronozing = false;
-            _localStorage = localProvider;
-            _googleStorage = googleProvider;
+            _facade = CalendarServicesFacade.GetInstance();
             _syncCts = new CancellationTokenSource();
         }
 
@@ -45,6 +46,7 @@ namespace Mailbird.Apps.Calendar.Engine
 
         public void AsyncSync()
         {
+
             try
             {
                 if (_syncCts == null) { _syncCts = new CancellationTokenSource(); }
@@ -74,10 +76,17 @@ namespace Mailbird.Apps.Calendar.Engine
 
             try
             {
-                //this.OutBoundSync();
+                this.OutBoundSync();
                 this.InBoundSync();
             }
-            catch { }
+            catch 
+            {
+                var local = _facade.GetLocalService();
+                lock (local)
+                {
+                    local.RollBack();
+                }
+            }
 
             this.IsSynchronozing = false;
         }
@@ -88,78 +97,114 @@ namespace Mailbird.Apps.Calendar.Engine
         /// Local changes are synced with the live services
         /// </summary>
         private void OutBoundSync()
-        {
-            var pendingCalenders = _localStorage.CalendarRepo.Get(false)
-                                      .Where(a => a.LocalStorageState != Enums.LocalStorageDataState.Unchanged)
-                                      .Select(a => a).ToList();
+        { 
+            var _localStorage = _facade.GetLocalService();
+            var users = _localStorage.UserInfoRepo.Get();
 
-            if (pendingCalenders.Any())
+
+            foreach (var user in users)
             {
+                #region Calendar Sync
 
-                lock (_localStorage)
+                var pendingCalenders = _localStorage.CalendarRepo.Get(false)                          
+                    .Where(a => a.LocalStorageState != Enums.LocalStorageDataState.Unchanged && a.UserId == user.Id)
+                    .Select(a => a).ToList();
+
+                if (pendingCalenders.Any())
                 {
-                    foreach (var calender in pendingCalenders)
+                    lock (_localStorage)
                     {
-                        if (calender.LocalStorageState == Enums.LocalStorageDataState.Added)
+                        var provider = _facade.GetUserService(user.Id);
+                        lock (provider)
                         {
-                            var response = _googleStorage.InsertCalendar(calender);
-                            _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
-                            _localStorage.CalendarRepo.Add(response, Enums.LocalStorageDataState.Unchanged);
+                            foreach (var calender in pendingCalenders)
+                            {
+                                if (calender.LocalStorageState == Enums.LocalStorageDataState.Added)
+                                {
+                                    var response = provider.InsertCalendar(calender);
+                                    _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
+                                    _localStorage.CalendarRepo.Add(response, Enums.LocalStorageDataState.Unchanged);
+
+                                    /// On insert the calendar key will changed. And hence its related apointments 
+                                    /// calendarId refernce has to be updated.
+
+                                    var relatedAppointments = _localStorage.AppointmentRepo.Get(false).Where(m => m.CalendarId == calender.Id);
+                                    foreach (var appointment in relatedAppointments)
+                                    { 
+                                        appointment.CalendarId = response.Id;
+                                        _localStorage.AppointmentRepo.Update(appointment, appointment.LocalStorageState);
+                                    }
+                                }
+                                else if (calender.LocalStorageState == Enums.LocalStorageDataState.Modified)
+                                {
+                                    var response = provider.UpdateCalendar(calender);
+                                    _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
+                                    _localStorage.CalendarRepo.Add(response, Enums.LocalStorageDataState.Unchanged);
+                                }
+                                else if (calender.LocalStorageState == Enums.LocalStorageDataState.Deleted)
+                                {
+                                    var response = provider.DeleteCalendar(calender);
+                                    _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
+                                }
+                            }
                         }
-                        else if (calender.LocalStorageState == Enums.LocalStorageDataState.Modified)
-                        {
-                            var response = _googleStorage.UpdateCalendar(calender);
-                            _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
-                            _localStorage.CalendarRepo.Add(response, Enums.LocalStorageDataState.Unchanged);
-                        }
-                        else if (calender.LocalStorageState == Enums.LocalStorageDataState.Deleted)
-                        {
-                            var response = _googleStorage.DeleteCalendar(calender);
-                            _localStorage.CalendarRepo.Delete(calender, Enums.LocalStorageDataState.Unchanged);
-                        }
+
+                        _localStorage.SaveChanges();
                     }
-
-
-                    _localStorage.SaveChanges();
                 }
+
+                #endregion
             }
 
 
 
-
-            var pendingAppointments = _localStorage.AppointmentRepo.Get(false)
-                                                  .Where(a => a.LocalStorageState != Enums.LocalStorageDataState.Unchanged)
-                                                  .Select(a => a).ToList();
-
-            if (pendingAppointments.Any())
+            foreach (var user in users)
             {
+                #region Appointments Sync
 
-                lock (_localStorage)
+                var pendingAppointments = (from app in _localStorage.AppointmentRepo.Get(false)
+                                           join cal in _localStorage.CalendarRepo.Get(false)
+                                           on app.CalendarId equals cal.Id
+                                           where app.LocalStorageState != Enums.LocalStorageDataState.Unchanged
+                                           select app).ToList();
+
+
+                if (pendingAppointments.Any())
                 {
-                    foreach (var app in pendingAppointments)
+                    lock (_localStorage)
                     {
-                        if (app.LocalStorageState == Enums.LocalStorageDataState.Added)
+                        var provider = _facade.GetUserService(user.Id);
+                        lock (provider)
                         {
-                            var changedAppointment = _googleStorage.InsertAppointment(app);
-                            _localStorage.AppointmentRepo.Delete(app, Enums.LocalStorageDataState.Unchanged);
-                            _localStorage.AppointmentRepo.Add(changedAppointment, Enums.LocalStorageDataState.Unchanged);
+                            foreach (var app in pendingAppointments)
+                            {
+                                if (app.LocalStorageState == Enums.LocalStorageDataState.Added)
+                                {
+                                    var changedAppointment = provider.InsertAppointment(app);
+                                    _localStorage.AppointmentRepo.Delete(app, Enums.LocalStorageDataState.Unchanged);
+                                    _localStorage.AppointmentRepo.Add(changedAppointment, Enums.LocalStorageDataState.Unchanged);
+                                }
+                                else if (app.LocalStorageState == Enums.LocalStorageDataState.Modified)
+                                {
+                                    var changedAppointment = provider.UpdateAppointment(app);
+                                    _localStorage.AppointmentRepo.Delete(app, Enums.LocalStorageDataState.Unchanged);
+                                    _localStorage.AppointmentRepo.Add(changedAppointment, Enums.LocalStorageDataState.Unchanged);
+                                }
+                                else if (app.LocalStorageState == Enums.LocalStorageDataState.Deleted)
+                                {
+                                    var status = provider.DeleteAppointment(app);
+                                    _localStorage.AppointmentRepo.Delete(app, Enums.LocalStorageDataState.Unchanged);
+                                }
+                            }
                         }
-                        else if (app.LocalStorageState == Enums.LocalStorageDataState.Modified)
-                        {
-                            var changedAppointment = _googleStorage.UpdateAppointment(app);
-                            _localStorage.AppointmentRepo.Delete(app, Enums.LocalStorageDataState.Unchanged);
-                            _localStorage.AppointmentRepo.Add(changedAppointment, Enums.LocalStorageDataState.Unchanged);
-                        }
-                        else if (app.LocalStorageState == Enums.LocalStorageDataState.Deleted)
-                        {
-                            var status = _googleStorage.DeleteAppointment(app);
-                            _localStorage.AppointmentRepo.Delete(app, Enums.LocalStorageDataState.Unchanged);
-                        }
+
+                        _localStorage.SaveChanges();
                     }
                 }
+
+                #endregion
+
             }
-
-
         }
 
 
@@ -168,112 +213,50 @@ namespace Mailbird.Apps.Calendar.Engine
         private void InBoundSync()
         {
             SyncToken syncToken = null;
-            string currentToken = null;
-            string nextToken = null;
-
-
-
-            #region Colors Sync
-
-            syncToken = _localStorage.SyncRepo.Get().FirstOrDefault(m => m.TokenContext == Enums.SyncTokenType.ColorDefinition);
-            if (syncToken == null)
-            {
-                syncToken = new SyncToken()
-                {
-                    TokenContext = Enums.SyncTokenType.ColorDefinition,
-                    Token = null,
-                    LocalStorageState = Enums.LocalStorageDataState.Unchanged
-                };
-            }
-            currentToken = (syncToken == null) ? null : syncToken.Token;
-            nextToken = currentToken;
-
-            var pendingColorDefs = _googleStorage.GetColors(out nextToken, currentToken);
-            if (pendingColorDefs.Any())
-            {
-                lock (_localStorage)
-                {
-                    _localStorage.CalendarColorRepo.Clear();
-                    foreach (var colorDef in pendingColorDefs[Enums.ColorType.Calendar])
-                    {
-                        _localStorage.CalendarColorRepo.Add(colorDef, Enums.LocalStorageDataState.Unchanged);
-                    }
-
-                    _localStorage.AppointmentColorRepo.Clear();
-                    foreach (var colorDef in pendingColorDefs[Enums.ColorType.Appointment])
-                    {
-                        _localStorage.AppointmentColorRepo.Add(colorDef, Enums.LocalStorageDataState.Unchanged);
-                    }
-
-
-                    syncToken.Token = nextToken;
-                    if (string.IsNullOrEmpty(syncToken.Id))
-                    {
-                        _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged);
-                    }
-                    else
-                    {
-                        _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged);
-                    }
-
-                    _localStorage.SaveChanges();
-                }
-            }
-
-
-            #endregion
-
-
+            var _localStorage = _facade.GetLocalService();
+            var users = _localStorage.UserInfoRepo.Get();
 
             #region CalenderSync
 
-
-            syncToken = _localStorage.SyncRepo.Get().FirstOrDefault(m => m.TokenContext == Enums.SyncTokenType.Calendar);
-            if (syncToken == null)
+            foreach (var user in users)
             {
-                syncToken = new SyncToken()
+                var provider = _facade.GetUserService(user.Id);
+                syncToken = _localStorage.SyncRepo.Get().FirstOrDefault(m => (m.TokenType == Enums.SyncTokenType.Calendar && m.ParentId == user.Id));
+                var pendingCalenders = provider.FetchCalendars(syncToken);
+
+                if (pendingCalenders.Result.Any())
                 {
-                    TokenContext = Enums.SyncTokenType.Calendar,
-                    Token = null,
-                    LocalStorageState = Enums.LocalStorageDataState.Unchanged
-                };
-            }
-            currentToken = (syncToken == null) ? null : syncToken.Token;
-            nextToken = currentToken;
-
-            var pendingCalenders = _googleStorage.GetCalendars(out nextToken, currentToken);
-            if (pendingCalenders.Any())
-            {
-                lock (_localStorage)
-                {
-                    foreach (var calendar in pendingCalenders)
+                    lock (_localStorage)
                     {
-                        var localItem = _localStorage.CalendarRepo.Get(calendar.Id, false);
-                        if (localItem != null && calendar.CalenderList.IsDeleted)
+                        foreach (var calendar in pendingCalenders.Result)
                         {
-                            _localStorage.CalendarRepo.Delete(localItem, Enums.LocalStorageDataState.Unchanged);
+                            var localItem = _localStorage.CalendarRepo.Get(calendar.Id, false);
+                            if (localItem != null)
+                            {
+                                if(calendar.CalenderList.IsDeleted)
+                                {
+                                  _localStorage.CalendarRepo.Delete(localItem, Enums.LocalStorageDataState.Unchanged);
+                                }
+                                else
+                                {
+                                   _localStorage.CalendarRepo.Update(localItem, Enums.LocalStorageDataState.Unchanged);
+                                }
+                            }
+                            else if (localItem == null && !calendar.CalenderList.IsDeleted)
+                            {
+                                _localStorage.CalendarRepo.Add(calendar, Enums.LocalStorageDataState.Unchanged);
+                            }
                         }
-                        else if (localItem == null && !calendar.CalenderList.IsDeleted)
-                        {
-                            _localStorage.CalendarRepo.Add(calendar, Enums.LocalStorageDataState.Unchanged);
-                        }
-                    }
 
-                    syncToken.Token = nextToken;
-                    if (string.IsNullOrEmpty(syncToken.Id))
-                    {
-                        _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged);
-                    }
-                    else
-                    {
-                        _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged);
-                    }
+                        syncToken = pendingCalenders.NextSyncToken;
+                        var isExisting = (_localStorage.SyncRepo.Get(syncToken.Id ?? "") != null);
+                        if (isExisting) { _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged); }
+                        else { _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged); }
 
-                    // Save changes to file ...
-                    _localStorage.SaveChanges();
+                        _localStorage.SaveChanges();
+                    }
                 }
             }
-
 
             #endregion
 
@@ -282,40 +265,33 @@ namespace Mailbird.Apps.Calendar.Engine
             #region Calender Appointments
 
 
-            var calenders = _localStorage.CalendarRepo.Get();
-            foreach (var calender in calenders)
-            {
-                syncToken = null;
-                currentToken = null;
-                nextToken = null;
-
-
-                syncToken = _localStorage.SyncRepo.Get().FirstOrDefault(m => m.TokenContext == Enums.SyncTokenType.CalenderAppointments &&
-                                                                             m.CalenderId == calender.Id);
-                if (syncToken == null)
+            foreach (var user in users)
+            {               
+                var userCalendars = _localStorage.CalendarRepo.Get(false).Where(m => (m.UserId == user.Id)).ToList();
+                foreach (var userCal in userCalendars)
                 {
-                    syncToken = new SyncToken()
-                    {
-                        CalenderId = calender.Id,
-                        TokenContext = Enums.SyncTokenType.CalenderAppointments,
-                        Token = null,
-                        LocalStorageState = Enums.LocalStorageDataState.Unchanged
-                    };
-                }
-                currentToken = (syncToken == null) ? null : syncToken.Token;
-                nextToken = currentToken;
+                    syncToken = _localStorage.SyncRepo.Get().FirstOrDefault(m => (m.TokenType == Enums.SyncTokenType.CalenderAppointments && m.ParentId == userCal.Id));
+                    var provider = _facade.GetUserService(user.Id);
+                    var pendingAppointments = provider.FetchAppointments(userCal, syncToken);
 
-                var pendingAppointments = _googleStorage.GetAppointments(out nextToken, calender, currentToken, true);
-                if (pendingAppointments.Any())
-                {
-                    lock (_localStorage)
+                    if (pendingAppointments.Result.Any())
                     {
-                        foreach (var appointment in pendingAppointments)
+                        lock (_localStorage)
+                        {
+
+                        foreach (var appointment in pendingAppointments.Result)
                         {
                             var localItem = _localStorage.AppointmentRepo.Get(appointment.Id, false);
-                            if (localItem != null && appointment.Status == Enums.AppointmentStatus.Cancelled)
+                            if (localItem != null)
                             {
-                                _localStorage.AppointmentRepo.Delete(localItem, Enums.LocalStorageDataState.Unchanged);
+                                if (appointment.Status == Enums.AppointmentStatus.Cancelled)
+                                {
+                                   _localStorage.AppointmentRepo.Delete(localItem, Enums.LocalStorageDataState.Unchanged);
+                                }
+                                else
+                                {
+                                   _localStorage.AppointmentRepo.Update(localItem, Enums.LocalStorageDataState.Unchanged);
+                                }
                             }
                             else if (localItem == null && appointment.Status != Enums.AppointmentStatus.Cancelled)
                             {
@@ -323,14 +299,14 @@ namespace Mailbird.Apps.Calendar.Engine
                             }
                         }
 
-                        syncToken.Token = nextToken;
-                        if (string.IsNullOrEmpty(syncToken.Id))
-                            _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged);
-                        else
-                            _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged);
+                        syncToken = pendingAppointments.NextSyncToken;
+                        var isExisting = (_localStorage.SyncRepo.Get(syncToken.Id ?? "") != null);
+                        if (isExisting) { _localStorage.SyncRepo.Update(syncToken, Enums.LocalStorageDataState.Unchanged); }
+                        else { _localStorage.SyncRepo.Add(syncToken, Enums.LocalStorageDataState.Unchanged); }
 
-                        // save changes to file ...
                         _localStorage.SaveChanges();
+
+                        }
                     }
                 }
             }

@@ -30,6 +30,16 @@ namespace Mailbird.Apps.Calendar.UIModels
             }
         }
 
+        public string UserId
+        {
+            get { return _bm.UserId; }
+            set
+            {
+                _bm.UserId = value;
+                RaisePropertyChanged(() => UserId);
+            }
+        }
+
         public string Summary
         {
             get { return _bm.Summary; }
@@ -60,18 +70,8 @@ namespace Mailbird.Apps.Calendar.UIModels
             }
         }
         
-        //public string TimeZone
-        //{
-        //    get { return _bm.TimeZone; }
-        //    set
-        //    {
-        //        _bm.TimeZone = value;
-        //        RaisePropertyChanged(() => TimeZone);
-        //    }
-        //}
 
-
-        public Access AccessRole
+        public AccessRole AccessRole
         {
             get { return _bm.CalenderList.AccessRole; }
             set
@@ -93,20 +93,20 @@ namespace Mailbird.Apps.Calendar.UIModels
 
         public string BackgroundColor
         {
-            get { return _bm.CalenderList.BackgroundColor; }
+            get { return _bm.CalenderList.Color.Background; }
             set
             {
-                _bm.CalenderList.BackgroundColor = value;
+                _bm.CalenderList.Color.Background = value;
                 RaisePropertyChanged(() => BackgroundColor);
             }
         }
 
         public string ForegroundColor
         {
-            get { return _bm.CalenderList.ForegroundColor; }
+            get { return _bm.CalenderList.Color.Foreground; }
             set
             {
-                _bm.CalenderList.ForegroundColor = value;
+                _bm.CalenderList.Color.Foreground = value;
                 RaisePropertyChanged(() => ForegroundColor);
             }
         }

@@ -6,6 +6,7 @@ using System.Windows.Data;
 using DevExpress.XtraScheduler;
 using Mailbird.Apps.Calendar.UIModels;
 using System.Collections.Generic;
+using Mailbird.Apps.Calendar.Enums;
 
 namespace Mailbird.Apps.Calendar.UIResources.Converters
 {

@@ -2,7 +2,7 @@
 ﻿using DevExpress.Mvvm.POCO;
 ﻿using DevExpress.Xpf.Scheduler;
 ﻿using Mailbird.Apps.Calendar.Engine;
- ﻿using System;
+using System;
 using System.Collections.Generic;
 ﻿using System.Linq;
 ﻿using DevExpress.Xpf.Core.Native;
@@ -20,80 +20,50 @@ using Mailbird.Apps.Calendar.UIModels;
 using Appointment = Mailbird.Apps.Calendar.Engine.Metadata.Appointment;
 using DevExpress.Xpf.Core;
 using System.Windows.Controls;
+using Microsoft.Win32;
+using Mailbird.Apps.Calendar.Enums;
+using DevExpress.Xpf.Scheduler.Drawing;
+using System.Windows.Input;
 
 
 namespace Mailbird.Apps.Calendar.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase
+    public class MainWindowViewModel : ViewModelBase, ISupportServices
     {
         #region PrivateProps
 
-       
-        private readonly LocalCalenderService _local;
-        private readonly GoogleCalendarService _google;
+        private readonly ICalendarServicesFacade _facade;
         private readonly ICalendarCatalog _calendarsCatalog;
         private readonly Synchronizer _syncer;
 
-        //private List<AppointmentUI> _appointmentSource;
-        //private List<CalenderUI> _calenderSource;
 
-
+        private string _searchText;
         private CalenderView _selectedCalenderView = CalenderView.Day;
-
-        
-        protected DelegateCommand _createNewCalenderUICommand;
-
-
-      
-        //private readonly ObservableCollection<TreeData> _treeData = new ObservableCollection<TreeData>();
-
-
-        //private readonly Dictionary<object, AppointmentUI> _appointmentSource = new Dictionary<object, AppointmentUI>();
-        //private readonly Dictionary<object, CalenderUI> _calenderSource = new Dictionary<object, CalenderUI>();
-
-
         public ObservableCollection<AppointmentUI> _appointmentCollection { get; private set; }
-        public ObservableCollection<CalenderUI> _calenderCollection { get; private set; }
+        public ObservableCollection<UserInfoUI> _userCollections { get; private set; }
 
-
+        protected DelegateCommand _createNewCalenderUICommand;
+        protected DelegateCommand<RoutedEventArgs> _searchUICommand;
 
 
         #endregion PrivateProps
 
         #region PublicProps
 
-        public ObservableCollection<DevExpress.XtraScheduler.Appointment> SelectedAppointments 
-        { 
-            get;
-            set; 
-        }
-
-        public AppointmentPopupViewModel AppointmentPopupViewModel { get; private set; }
         public CalenderPopupViewModel CalenderPopupViewModel { get; private set; }
-        //public FlyoutViewModel FlyoutViewModel { get; private set; }
+        public AppointmentPopupViewModel AppointmentPopupViewModel { get; private set; }
+        public AppointmentDetailsPopupViewModel AppointmentDetailsPopupVM { get; set; }
 
 
-
-
-        //public List<AppointmentUI> AppointmentSource
-        //{
-        //    get { return new List<AppointmentUI>(_appointmentSource); }
-        //    private set
-        //    {
-        //        _appointmentSource = value;
-        //        RaisePropertyChanged(() => AppointmentSource);
-        //    }
-        //}
-
-        //public List<CalenderUI> CalendarSource
-        //{
-        //    get { return new List<CalenderUI>(_calenderSource); }
-        //    private set
-        //    {
-        //        _calenderSource = value;
-        //        RaisePropertyChanged(() => CalendarSource);
-        //    }
-        //}
+        public string SearchText
+        {
+            get { return _searchText; }
+            set
+            {
+                _searchText = value;
+                RaisePropertyChanged(() => SearchText);
+            }
+        }
 
         public bool IsAgendaViewActive
         {
@@ -107,7 +77,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
             {
                 _selectedCalenderView = value;
                 RaisePropertyChanged(() => SelectedCalenderView);
-                RaisePropertyChanged(() => IsAgendaViewActive); 
+                RaisePropertyChanged(() => IsAgendaViewActive);
             }
         }
 
@@ -130,6 +100,17 @@ namespace Mailbird.Apps.Calendar.ViewModels
             }
         }
 
+        public DelegateCommand<RoutedEventArgs> SearchUICommand
+        {
+            get
+            {
+                if (_searchUICommand == null)
+                {
+                    _searchUICommand = new DelegateCommand<RoutedEventArgs>(OnSearchExecute, true);
+                }
+                return _searchUICommand;
+            }
+        }
 
         public ObservableCollection<AppointmentUI> AppointmentCollection
         {
@@ -141,77 +122,59 @@ namespace Mailbird.Apps.Calendar.ViewModels
             }
         }
 
-        public ObservableCollection<UIModels.CalenderUI> CalenderCollection
+        public ObservableCollection<UIModels.UserInfoUI> UserCollection
         {
-            get { return _calenderCollection; }
+            get { return _userCollections; }
             private set
             {
 
-                _calenderCollection = value;
-                RaisePropertyChanged(() => CalenderCollection);
+                _userCollections = value;
+                RaisePropertyChanged(() => UserCollection);
             }
         }
-
-        //public ObservableCollection<TreeData> TreeData
-        //{
-        //    get { return _treeData; }
-        //}
-
-
-
-
-
 
 
         #endregion PublicProps
 
         public MainWindowViewModel()
         {
-            _local = new LocalCalenderService();
-            _google = new GoogleCalendarService();
-            _calendarsCatalog = new CalendarsCatalog(_local);
-            _syncer = new Synchronizer(_local, _google);
+            _facade = CalendarServicesFacade.GetInstance();
+            _serviceContainer = new ServiceContainer(this);
+            _calendarsCatalog = new CalendarsCatalog(_facade.GetLocalService());
+            _syncer = new Synchronizer();
 
+            CalenderPopupViewModel = new ViewModels.CalenderPopupViewModel()
+            {
+                InsertCalenderAction = InsertCalender,
+                UpdateCalenderAction = UpdateCalender,
+                DeleteCalenderAction = RemoveCalender
+            };
 
-            _local.StorageChanged += OnLocal_StorageChanged;
+            AppointmentPopupViewModel = new AppointmentPopupViewModel()
+            {
+                InsertAppointmentAction = InsertAppointment,
+                UpdateAppointmentAction = UpdateAppointment,
+                DeleteAppointmentAction = DeleteAppointment
+            };
+
+            AppointmentDetailsPopupVM = new AppointmentDetailsPopupViewModel()
+            {
+                UpdateAppointmentAction = this.OpenAppointmentPopUp,
+                DeleteAppointmentAction = this.DeleteAppointment,
+            };
+
+            // Listen to storage changes
+            _facade.GetLocalService().StorageChanged += OnLocal_StorageChanged;
 
             LoadResources();
-            //this.CalenderPopupViewModel = new CalenderPopupViewModel();
-
-            //this.AppointmentPopupViewModel = new AppointmentPopupViewModel();
-            //FlyoutViewModel = new FlyoutViewModel
-            //{
-            //    AddAppointmentAction = AddAppointment,
-            //    UpdateAppointmentAction = UpdateAppointment,
-            //    RemoveAppointmentAction = RemoveAppointment
-            //};
-
-
-          
-
-            ////AddElementToTree(provider);
-            //var calenders = _calendarsCatalog.GetCalendars();
-            //foreach (var calendar in calenders)
-            //{
-            //    AddElementToTree(calendar);
-            //}
-
-            //AppointmentCollection = new ObservableCollection<Appointment>(_calendarsCatalog.GetAppointments());
-
-            // Start Async appointment sync
             _syncer.AsyncSync();
         }
 
-        private void OnLocal_StorageChanged(object sender, Engine.EventArugs.LocalStorageChangedArgs e)
-        {
-            LoadResources();
-            
-        }
 
 
         protected void LoadResources()
         {
-            LoadCalenders();
+            LoadUsers();
             LoadAppointments();
         }
 
@@ -220,129 +183,79 @@ namespace Mailbird.Apps.Calendar.ViewModels
         protected void LoadAppointments()
         {
             List<AppointmentUI> appointments = new List<AppointmentUI>();
-            List<Appointment> apts = new List<Appointment>();
-            var calenders = this.CalenderCollection.Where(m => m.IsSelected);
-            foreach (var calender in calenders)
-            {
-                //apts.AddRange(_calendarsCatalog.GetAppointments(calender.CalendarId));
-                appointments.AddRange(_calendarsCatalog.GetAppointments(calender.Id).Select(m => m.Clone()).ToList());
-            }
-
-            AppointmentCollection = new ObservableCollection<AppointmentUI>(appointments);  
+            appointments.AddRange(_calendarsCatalog.GetAppointments().Select(m => m.Clone()).ToList());
+            AppointmentCollection = new ObservableCollection<AppointmentUI>(appointments);
         }
 
 
+        // Users
+        protected void LoadUsers()
+        {
+            var usersVms = _calendarsCatalog.GetUsers().Select(m => m.Clone()).ToList();
+            foreach (var userVm in usersVms)
+            {
+                userVm.PropertyChanged += userVm_PropertyChanged;
+                LoadCalenders(userVm);
+            }
+            UserCollection = new ObservableCollection<UserInfoUI>(usersVms);
+        }
 
         // Calenders
-
-
-        protected void LoadCalenders()
+        protected void LoadCalenders(UserInfoUI userVm)
         {
-            var calenderVms = _calendarsCatalog.GetCalendars().Select(m => m.Clone()).ToList();
+            var calenderVms = _calendarsCatalog.GetCalendars().Where(m => m.UserId == userVm.Id)
+                                               .Select(m => m.Clone()).ToList();
             foreach (var calvm in calenderVms)
             {
                 calvm.PropertyChanged += Calender_PropertyChanged;
             }
-            this.CalenderCollection = new ObservableCollection<CalenderUI>(calenderVms);
+            userVm.Calendars = new ObservableCollection<CalenderUI>(calenderVms);
         }
 
 
-                
+        #region Event Handlers
+
+
+        /// <summary>
+        /// To do when any changes are made on the storage.
+        /// </summary>
+        private void OnLocal_StorageChanged(object sender, Engine.EventArugs.LocalStorageChangedArgs e)
+        {
+            LoadResources();
+        }
+
+        /// <summary>
+        /// Manage what to do when user is selected and deselcted
+        /// </summary>
+        void userVm_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "IsSelected")
+            {
+                // When a calendar has been selected or deselected 
+                RaisePropertyChanged(() => AppointmentCollection);
+            }
+        }
+
+        /// <summary>
+        /// Manage what to do when calendar is selected and deselcted
+        /// </summary>
         private void Calender_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "IsSelected")
             {
-                LoadAppointments();
+                // When a calendar has been selected or deselected 
+                RaisePropertyChanged(() => AppointmentCollection);
             }
         }
 
 
-        void CalenderCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (e.NewItems != null && e.NewItems.Count != 0)
-                foreach (UIModels.CalenderUI model in e.NewItems)
-                    model.PropertyChanged += this.Calender_PropertyChanged;
-
-            if (e.OldItems != null && e.OldItems.Count != 0)
-                foreach (UIModels.CalenderUI model in e.NewItems)
-                    model.PropertyChanged -= this.Calender_PropertyChanged;
-        }
+        #endregion
 
 
 
-        //#region Synchronization
-
-        ///// <summary>
-        ///// Cancel an ongoing appointment sync
-        ///// </summary>
-        //public void CancelAsyncSync()
-        //{
-        //    if (_syncCts != null) { _syncCts.Cancel(); }
-        //}
-
-
-        ///// <summary>
-        ///// Asynchronous appointment sync
-        ///// </summary>
-        //public void AsyncSync()
-        //{
-        //    try
-        //    {
-        //        if (_syncCts == null) { _syncCts = new CancellationTokenSource(); }
-        //        var cancelToken = _syncCts.Token;
-
-
-        //        Task.Factory.StartNew(()=>
-        //        {
-        //            while (true)
-        //            {
-        //                cancelToken.ThrowIfCancellationRequested();
-
-        //                //If any exceptions are throen from the sync, suppress them
-        //                try
-        //                {
-        //                    Sync();
-        //                }
-        //                catch { }
-
-        //                Thread.Sleep(APPOINTMENT_SYNC_PERIOD);
-        //            }
-        //        }, cancelToken);
-        //    }
-        //    catch (Exception exp)
-        //    {
-        //        System.Diagnostics.Debug.WriteLine(exp.ToString());
-        //    }
-        //}
-
-
-        ///// <summary>
-        ///// To Do on Sync
-        ///// </summary>
-        //public void Sync()
-        //{
-        //    // Add new appointments if, appointment id is not already in list
-        //    var appointments = _calendarsCatalog.GetCalendarAppointments();
-        //    foreach (var appointment in appointments)
-        //    {
-        //        if (!_appointments.ContainsKey(appointment.Id))
-        //        {
-        //            _appointments.Add(appointment.Id, appointment);
-
-        //            Action<Appointment> addMethod = AppointmentCollection.Add;
-        //            Application.Current.Dispatcher.BeginInvoke(addMethod, appointment);
-        //            RaisePropertyChanged(() => AppointmentCollection);
-        //        }
-        //    }
-
-        //    // For later use
-        //    var calenders = _calendarsCatalog.GetCalendars().Select(m => m.Clone()).ToList();
-        //    this.CalenderCollection = new ObservableCollection<UIModels.Calender>(calenders);
-        //}
-
-
-        //#endregion
-
+        // All controls deriving from the main wind should use these
+        // function, Instead of having repeated implementations 
+        #region Appointment CRUD Functions
 
         public void InsertAppointment(AppointmentUI appointment)
         {
@@ -357,8 +270,10 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         public void UpdateAppointment(AppointmentUI appointment)
         {
-            // update event on context, if success update vm
+            // Updated has failed, if Null is retuned. Since the scheulder storage is updated already
+            // fetch the unchanged appointment from local storage and update the scheduler storage
             var updatedAppointment = _calendarsCatalog.UpdateAppointment(appointment.Clone());
+            if (updatedAppointment == null) { updatedAppointment = _calendarsCatalog.GetAppointment(appointment.Id); }
             if (updatedAppointment != null)
             {
                 var toRemoveApt = AppointmentCollection.FirstOrDefault(m => (m.Id == updatedAppointment.Id));
@@ -383,88 +298,185 @@ namespace Mailbird.Apps.Calendar.ViewModels
         }
 
 
-        //public void AppointmentOnViewChanged(Appointment appointment)
-        //{
-        //    var app = AppointmentCollection.First(f => f.Id == appointment.Id);
-        //    appointment.ReminderInfo = app.ReminderInfo;
-        //    appointment.CalendarId = app.CalendarId;
-        //    UpdateAppointment(appointment.Id, appointment);
-        //}
-
-        //private void AddElementToTree(object element)
-        //{
-        //    if (element is ICalendarProvider)
-        //    {
-        //        TreeData.Add(new TreeData
-        //        {
-        //            DataType = TreeDataType.Provider,
-        //            Data = element,
-        //            Name = (element as ICalendarProvider).Name,
-        //            ParentID = "0"
-        //        });
-        //    }
-        //    if (element is Mailbird.Apps.Calendar.Engine.Metadata.Calendar)
-        //    {
-        //        TreeData.Add(new TreeData
-        //        {
-        //            DataType = TreeDataType.Calendar,
-        //            Data = element,
-        //            Name = (element as Mailbird.Apps.Calendar.Engine.Metadata.Calendar).Name,
-        //            ParentID = (element as Mailbird.Apps.Calendar.Engine.Metadata.Calendar).Provider
-        //        });
-        //    }
-        //}
-
-        //public void OpenInnerFlyout(SchedulerControl scheduler)
-        //{
-        //    FlyoutViewModel.SelectedStartDateTime = scheduler.SelectedInterval.Start;
-        //    FlyoutViewModel.SelectedEndDateTime = scheduler.SelectedInterval.End;
-        //    FlyoutViewModel.IsOpen = true;
-        //}
-
-        //public void CloseInnerFlyout()
-        //{
-        //    if (FlyoutViewModel.IsEdited)
-        //    {
-        //        FlyoutViewModel.OkCommandeExecute();
-        //    }
-        //    else
-        //    {
-        //        FlyoutViewModel.IsOpen = false;
-        //    }
-        //}
+        #endregion
 
 
+        #region Calendar CRUD Functions
 
         public void InsertCalender(UIModels.CalenderUI calender)
-        {            
+        {
             var addedCalender = _calendarsCatalog.InsertCalendar(calender.Clone());
-            if (addedCalender != null)
-            {
-                LoadCalenders();
-            }
         }
 
 
         public void UpdateCalender(UIModels.CalenderUI calender)
         {
             var updatedCalender = _calendarsCatalog.UpdateCalendar(calender.Clone());
-            if (updatedCalender != null)
-            {
-                LoadCalenders();
-            }
         }
 
 
         public void RemoveCalender(UIModels.CalenderUI calender)
         {
-            if (_calendarsCatalog.RemoveCalendar(calender.Clone()))
+            _calendarsCatalog.RemoveCalendar(calender.Clone());
+        }
+
+        #endregion
+
+
+        #region Modals and Pop functions
+
+
+        /// <summary>
+        /// Use this to edit an appoinment
+        /// </summary>
+        /// <param name="appointmentId"></param>
+        public void OpenAppointmentPopUp(string appointmentId)
+        {
+            OpenAppointmentPopUp(appointmentId, null, null);
+        }
+
+
+
+        /// <summary>
+        /// Use this to create a new appointment with start and end date time or default today.
+        /// </summary>
+        /// <param name="startDateTime">Prefered start date time</param>
+        /// <param name="endDateTime">prefered end date time, should not be lesser than start date tiime</param>
+        public void OpenAppointmentPopUp(DateTime? startDateTime = null, DateTime? endDateTime = null)
+        {
+            OpenAppointmentPopUp(null, startDateTime, endDateTime);
+        }
+
+
+        /// <summary>
+        /// Open a appoinemtn form to create or edit.
+        /// If a appoinemt is found the dates will be ignored.
+        /// </summary>
+        /// <param name="appointmentId">Appointment to load</param>
+        /// <param name="startDateTime">Start time date</param>
+        /// <param name="endDateTime">End date time</param>
+        private void OpenAppointmentPopUp(string appointmentId, DateTime? startDateTime, DateTime? endDateTime)
+        {
+            UIModels.AppointmentUI selectedAppointment = _appointmentCollection.FirstOrDefault(m => (m.Id == (appointmentId ?? "")));
+
+            AppointmentPopupViewModel.AvailableCalenders = _calendarsCatalog.GetCalendars().Select(m => m.Clone()).ToList();
+            AppointmentPopupViewModel.SelectedAppointment = selectedAppointment;
+            AppointmentPopupViewModel.StartDate = (selectedAppointment != null) ? selectedAppointment.StartDateTime : (startDateTime ?? DateTime.Now);
+            AppointmentPopupViewModel.EndDate = (selectedAppointment != null) ? selectedAppointment.EndDateTime : (endDateTime ?? DateTime.Now);
+            AppointmentPopupViewModel.LocationSuggestions = SearchMatchingLocation();
+
+            _appointmentEditDialogService.ShowDialog(null, AppointmentPopupViewModel.Title, AppointmentPopupViewModel);
+        }
+
+
+        public void OpenCalenderPopUp(string calenderId)
+        {
+            CalenderPopupViewModel.AvailableUsers = new ObservableCollection<UserInfoUI>(_calendarsCatalog.GetUsers().Select(m => m.Clone()).ToList());
+            CalenderPopupViewModel.SelectedCalender = _calendarsCatalog.GetCalendar(calenderId).Clone();
+            _calenderEditDialogService.ShowDialog(null, CalenderPopupViewModel.Title, CalenderPopupViewModel);
+        }
+
+
+        public void OpenReminderPopup(string appointmentId)
+        {
+            var toRemindAppointment = AppointmentCollection.FirstOrDefault(m => (m.Id == appointmentId));
+            if (toRemindAppointment != null)
             {
-                LoadCalenders();
+                DXDialog modal = new DXDialog("Reminder Alert !", DialogButtons.Ok)
+                {
+                    Content = new TextBlock() { Text = string.Format("{0} Starts at {1}", toRemindAppointment.Summary, toRemindAppointment.StartDateTime.ToString()) },
+                    SizeToContent = System.Windows.SizeToContent.WidthAndHeight,
+                    Owner = Application.Current.MainWindow,
+                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner
+                };
             }
         }
 
 
+        public void OpenAppointmentDetailsPopup(UIElement targetPlacement)
+        {
+            // Show deatils popup only if 1 appointment is selected
+            if (targetPlacement != null && (targetPlacement is VisualAppointmentControl))
+            {
+                var selectedAppointmentVisual = (VisualAppointmentControl)targetPlacement;
+                var selectedAppointment = selectedAppointmentVisual.GetAppointment();
+
+                AppointmentDetailsPopupVM.SelectedAppointment = AppointmentCollection.FirstOrDefault(m => m.Id == selectedAppointment.Id);
+                AppointmentDetailsPopupVM.PlacementTarget = selectedAppointmentVisual;
+                AppointmentDetailsPopupVM.RefreshModal();
+                AppointmentDetailsPopupVM.IsOpen = true;
+                return;
+            }
+            AppointmentDetailsPopupVM.IsOpen = false;
+        }
+
+
+        #endregion
+
+
+
+        #region API extension Test Functions
+
+        /// <summary>
+        /// This is a exmaple to export appoinments as .ICS
+        /// </summary>
+        public void OpenSendInvitationPopup(SchedulerControl scheduler)
+        {
+            var selectedAppointments = AppointmentCollection.Where(m => (scheduler.SelectedAppointments.Any(s => s.Id.ToString().Equals(m.Id)))).ToList();
+            if (selectedAppointments != null)
+            {
+                SaveFileDialog dialog = new SaveFileDialog();
+                dialog.Filter = "iCalendar files (*.ics)|*.ics";
+                dialog.FilterIndex = 1;
+                if (dialog.ShowDialog() == true)
+                {
+                    using (var stream = dialog.OpenFile())
+                    {
+                        var parser = new ICalenderAppoinmentParser();
+                        parser.Serialize(stream, selectedAppointments.Select(m => m.Clone()).ToList());
+                    }
+                }
+
+            }
+        }
+
+
+        /// <summary>
+        /// This is a exmaple to import appoinments as .ICS
+        /// </summary>
+        public void OpenReceiveInvitationPopup()
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Multiselect = true;
+            dialog.Filter = "iCalendar files (*.ics)|*.ics";
+            dialog.FilterIndex = 1;
+            if (dialog.ShowDialog() != true)
+                return;
+
+            var appointmentsToAdd = new List<Mailbird.Apps.Calendar.Engine.Metadata.Appointment>();
+
+            foreach (var fileStream in dialog.OpenFiles())
+            {
+                var parser = new ICalenderAppoinmentParser();
+                appointmentsToAdd.AddRange(parser.Deserialize(fileStream));
+            }
+
+            foreach (var apt in appointmentsToAdd)
+            {
+                InsertAppointment(apt.Clone());
+            }
+        }
+
+        #endregion
+
+
+
+        /// <summary>
+        /// Helper function to fetch locatino suggestions
+        /// </summary>
+        /// <param name="searchContext"></param>
+        /// <param name="returnAllIfNoMatch"></param>
+        /// <returns></returns>
         public List<string> SearchMatchingLocation(string searchContext = null, bool returnAllIfNoMatch = true)
         {
             if (searchContext == null) { searchContext = ""; }
@@ -476,72 +488,60 @@ namespace Mailbird.Apps.Calendar.ViewModels
         }
 
 
-
-        public void OpenAppointmentPopUp(SchedulerControl scheduler)
+        /// <summary>
+        /// To Do on search command executed
+        /// </summary>
+        /// <param name="parameter"></param>
+        public void OnSearchExecute(RoutedEventArgs parameter)
         {
-            UIModels.AppointmentUI selectedAppointment = null;
-            if (scheduler.SelectedAppointments != null && scheduler.SelectedAppointments.Any())
+            if (parameter == null) { return; }
+            if (((KeyEventArgs)parameter).Key != Key.Enter) { return; }
+
+            parameter.Handled = true;
+            if (!string.IsNullOrWhiteSpace(_searchText))
             {
-                selectedAppointment = _appointmentCollection.FirstOrDefault(m => m.Id == scheduler.SelectedAppointments[0].Id);
-            }
-
-            AppointmentPopupViewModel = new AppointmentPopupViewModel()
-            {
-                AvailableCalenders = _calendarsCatalog.GetCalendars().Select(m => m.Clone()).ToList(),
-
-                SelectedAppointment = selectedAppointment,
-                StartDate = (selectedAppointment != null) ? selectedAppointment.StartDateTime: scheduler.SelectedInterval.Start,
-                EndDate = (selectedAppointment != null) ? selectedAppointment.EndDateTime : scheduler.SelectedInterval.End,
-                LocationSuggestions = SearchMatchingLocation(),
-                //SelectedStartDateTime = scheduler.SelectedInterval.Start,
-                //SelectedEndDateTime = scheduler.SelectedInterval.End,
-              
-                //DefaultCalender = _calendarsCatalog.GetCalendars().FirstOrDefault(m => (m.CalenderList != null && m.CalenderList.IsPrimary)).Clone(),
-                InsertAppointmentAction = InsertAppointment,
-                UpdateAppointmentAction = UpdateAppointment,
-                DeleteAppointmentAction = DeleteAppointment,
-                
-            };
-
-            UIStyles.AppointmentPopupStyle modal = new UIStyles.AppointmentPopupStyle();
-            modal.DataContext = AppointmentPopupViewModel;
-            AppointmentPopupViewModel.CancelPopUpAction = new Action(() => modal.Close());
-            modal.Owner = Application.Current.MainWindow;
-            modal.ShowDialog();
-        }
-
-
-        public void OpenCalenderPopUp(string calenderId)
-        {
-            CalenderPopupViewModel = new ViewModels.CalenderPopupViewModel()
-            {
-                SelectedCalender = _calendarsCatalog.GetCalendar(calenderId).Clone(),
-                InsertCalenderAction = InsertCalender,
-                UpdateCalenderAction = UpdateCalender,
-                DeleteCalenderAction = RemoveCalender
-            };
-
-            UIStyles.CalenderPopupContentStyle calenderModal = new UIStyles.CalenderPopupContentStyle();
-            calenderModal.DataContext = CalenderPopupViewModel;
-            CalenderPopupViewModel.CancelCalenderAction = new Action(() => calenderModal.Close());
-            calenderModal.Owner = Application.Current.MainWindow;
-            calenderModal.ShowDialog();
-        }
-
-
-        public void OpenReminderPopup(string appointmentId)
-        {
-            var toRemindAppointment = AppointmentCollection.FirstOrDefault(m => (m.Id == appointmentId));
-            if (toRemindAppointment != null)
-            {
-                DXDialog modal = new DXDialog("Reminder Alert !", DialogButtons.Ok)
-                {
-                     Content = new TextBlock() { Text = string.Format("{0} Starts at {1}",toRemindAppointment.Summary, toRemindAppointment.StartDateTime.ToString()) },
-                     SizeToContent = System.Windows.SizeToContent.WidthAndHeight,
-                     Owner = Application.Current.MainWindow,
-                     WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner
-                };
+                this.SelectedCalenderView = CalenderView.Agenda;
             }
         }
+
+
+        /// <summary>
+        /// This is a search helper fucntion
+        /// </summary>
+        /// <param name="appointment"></param>
+        /// <returns></returns>
+        public bool IsAppointmentVisible(AppointmentUI appointment)
+        {
+            if (appointment == null) { return false; }
+            var result = UserCollection.Where(m => m.IsSelected).SelectMany(m => m.Calendars)
+                                       .Any(m => m.Id == appointment.CalendarId && m.IsSelected);
+            if (!string.IsNullOrWhiteSpace(_searchText) && result)
+            {
+                result = ((appointment.Summary != null && appointment.Summary.Contains(_searchText)) ||
+                          (appointment.Description != null && appointment.Description.Contains(_searchText)));
+            }
+
+            return result;
+        }
+
+
+
+        /// <summary>
+        /// Used to fetch dialogs via devexpress services ....
+        /// </summary>
+        IServiceContainer _serviceContainer;
+        public IServiceContainer ServiceContainer
+        {
+            get
+            {
+                if (_serviceContainer == null) { _serviceContainer = new ServiceContainer(this); }
+                return _serviceContainer;
+            }
+        }
+
+        IDialogService _appointmentEditDialogService { get { return _serviceContainer.GetService<IDialogService>("AppointmentPopupService"); } }
+        IDialogService _calenderEditDialogService { get { return _serviceContainer.GetService<IDialogService>("CalenderPopupService"); } }
+
+
     }
 }

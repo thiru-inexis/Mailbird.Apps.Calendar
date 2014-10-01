@@ -23,6 +23,67 @@ namespace Mailbird.Apps.Calendar.Engine
         }
 
 
+        #region User Contracts
+
+        public IEnumerable<UserInfo> GetUsers()
+        {
+            lock (_calenderService)
+            {
+                return _calenderService.UserInfoRepo.Get();
+            }
+        }
+
+        public UserInfo GetUSer(string userId)
+        {
+             lock (_calenderService)
+            {
+                return _calenderService.UserInfoRepo.Get(userId);
+            }
+        }
+
+        public UserInfo InsertUser(UserInfo user)
+        {
+            lock (_calenderService)
+            {
+                var result = _calenderService.UserInfoRepo.Add(user);
+                _calenderService.SaveChanges();
+                return result;
+            }
+        }
+
+
+        public UserInfo UpdateUser(UserInfo user)
+        {
+            lock (_calenderService)
+            {
+                var result = _calenderService.UserInfoRepo.Add(user);
+                _calenderService.SaveChanges();
+                return result;
+            }
+        }
+
+        public bool RemoveUser(UserInfo user)
+        {
+            lock (_calenderService)
+            {
+                var toDeleteCal = GetCalendars().Where(m => m.UserId == user.Id);
+                foreach (var cal in toDeleteCal)
+                {
+                    RemoveCalendar(cal);
+                }
+                _calenderService.UserInfoRepo.Delete(user);
+                _calenderService.SaveChanges();
+                return true;
+            }
+        }
+
+        #endregion
+
+
+
+
+
+
 
 
         public IEnumerable<Metadata.Calendar> GetCalendars()
@@ -96,6 +157,16 @@ namespace Mailbird.Apps.Calendar.Engine
             }
         }
 
+
+        public Appointment GetAppointment(string appointmentId)
+        {
+            lock (_calenderService)
+            {
+                return _calenderService.AppointmentRepo.Get(appointmentId);
+            }
+        }
+
+
         public Appointment InsertAppointment(Appointment appointment)
         {
             lock (_calenderService)
@@ -133,5 +204,8 @@ namespace Mailbird.Apps.Calendar.Engine
             var result = new List<string>(){"New Hamphiree","New York", "Colombo", "Paris", "Oslo", "Geneva", "Denmark", "Norway"};
             return result;
         }
+
+
+
     }
 }

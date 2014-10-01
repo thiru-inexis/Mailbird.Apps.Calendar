@@ -18,41 +18,12 @@ namespace Mailbird.Apps.Calendar.UIStyles
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class AppointmentPopupStyle
+    public partial class AppointmentPopupStyle:UserControl
     {
-
         public AppointmentPopupStyle()
         {
             InitializeComponent();
         }
-
-        private void ComboBoxEdit_KeyUpDown(object sender, KeyEventArgs e)
-        {
-            e.Handled = true;
-            if (e.IsDown)
-            {
-                ((DevExpress.Xpf.Editors.ComboBoxEdit)sender).IsPopupOpen = true;
-            }
-        }
-
-        private void ComboBoxEdit_KeyDown(object sender, KeyEventArgs e)
-        {
-
-        }
-
-        private void ComboBoxEdit_SelectedIndexChanged(object sender, RoutedEventArgs e)
-        {
-            var element = ((DevExpress.Xpf.Editors.ComboBoxEdit)sender);
-            element.EditValue = element.SelectedText;
-        }
-
-
-        //public static CalenderPopupContentStyle GetInstance()
-        //{
-        //    if (_control == null) { _control = new CalenderPopupContentStyle(); }
-        //    return _control;
-        //}
-
 
     }
 }

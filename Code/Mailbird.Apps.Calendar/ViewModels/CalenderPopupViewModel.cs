@@ -11,14 +11,18 @@ using Mailbird.Apps.Calendar.UIModels;
 
 namespace Mailbird.Apps.Calendar.ViewModels
 {
-    public class CalenderPopupViewModel : Infrastructure.ViewModelBase
+
+    /// <summary>
+    /// To the binded to the calendar edit/update modal popup
+    /// </summary>
+    public class CalenderPopupViewModel : Infrastructure.ViewModelBase,ISupportServices
     {
         #region Private Attributes
-        private CalenderUI _basemodel;
 
+        private CalenderUI _selectedCalendar;
         private TimeZoneInfo _selectedTimeZone;
-        //private string _name;
-        //private string _description;
+        private ObservableCollection<UIModels.UserInfoUI> _availableUsers;
+
         #endregion
 
 
@@ -39,23 +43,21 @@ namespace Mailbird.Apps.Calendar.ViewModels
             }
         }
 
-
         public bool IsNewCalender
         {
             get
             {
-                return (_basemodel == null || string.IsNullOrEmpty(_basemodel.Id));
+                return (_selectedCalendar == null || string.IsNullOrEmpty(_selectedCalendar.Id));
             }
         }
 
-
         public CalenderUI SelectedCalender
         {
-            get { return _basemodel; }
+            get { return _selectedCalendar; }
             set 
             {
                 if (value == null) { value = new CalenderUI(); }
-                _basemodel = value;
+                _selectedCalendar = value;
                 RaisePropertyChanged(() => SelectedCalender);
             }
         }
@@ -78,47 +80,73 @@ namespace Mailbird.Apps.Calendar.ViewModels
             get { return TimeZoneInfo.GetSystemTimeZones().ToList(); }
         }
 
+        public ObservableCollection<UserInfoUI> AvailableUsers
+        {
+            get { return _availableUsers; }
+            set
+            {
+                _availableUsers = value;
+                RaisePropertyChanged(() => AvailableUsers);
+            }
+        }
+
+        public UIModels.UserInfoUI SelectedUser
+        {
+            get
+            {
+                if (AvailableUsers == null || !AvailableUsers.Any()) { return null; }
+                if (_selectedCalendar.UserId == null)
+                {
+                    return AvailableUsers.FirstOrDefault();
+                }
+                return AvailableUsers.FirstOrDefault(m => (m.Id == _selectedCalendar.UserId));
+            }
+            set
+            {
+                // Dont not allow to set, if its in edit mode
+                if (!IsNewCalender) { return; }
+                _selectedCalendar.UserId = value.Id;
+                RaisePropertyChanged(() => SelectedCalender);
+            }
+        }
 
 
         public string Summary
         {
-            get { return _basemodel.Summary; }
+            get { return _selectedCalendar.Summary; }
             set 
             {
-                _basemodel.Summary = value;
+                _selectedCalendar.Summary = value;
                 RaisePropertyChanged(() => Summary); 
             }
         }
 
         public string Description
         {
-            get { return _basemodel.Description; }
+            get { return _selectedCalendar.Description; }
             set
             {
-                _basemodel.Description = value;
+                _selectedCalendar.Description = value;
                 RaisePropertyChanged(() => Description);
             }
         }
 
         public string Location
         {
-            get { return _basemodel.Location; }
+            get { return _selectedCalendar.Location; }
             set
             {
-                _basemodel.Location = value;
+                _selectedCalendar.Location = value;
                 RaisePropertyChanged(() => Location);
             }
         }
 
-
-
-
         public string BackgroundColor
         {
-            get { return _basemodel.BackgroundColor; }
+            get { return _selectedCalendar.BackgroundColor; }
             set
             {
-                _basemodel.BackgroundColor = value;
+                _selectedCalendar.BackgroundColor = value;
                 RaisePropertyChanged(() => BackgroundColor);
             }
         }
@@ -148,7 +176,6 @@ namespace Mailbird.Apps.Calendar.ViewModels
                 return _updateUICommand;
             }
         }
-
         public DelegateCommand DeleteUICommand
         {
             get
@@ -176,7 +203,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
         public CalenderPopupViewModel()
             :base()
         {
-            _basemodel = new CalenderUI();
+            _selectedCalendar = new CalenderUI();
         }
 
 
@@ -192,17 +219,17 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         private void OnInsertCommandInvoked()
         {
-            InsertCalenderAction(_basemodel);
+            InsertCalenderAction(_selectedCalendar);
             CancelCalenderAction();
         }
         private void OnUpdateCommandInvoked()
         {
-            UpdateCalenderAction(_basemodel);
+            UpdateCalenderAction(_selectedCalendar);
             CancelCalenderAction();
         }
         private void OnDeleteCommandInvoked()
         {
-            DeleteCalenderAction(_basemodel);
+            DeleteCalenderAction(_selectedCalendar);
             CancelCalenderAction();
         }
         private void OnCancelCommandInvoked()
@@ -214,7 +241,28 @@ namespace Mailbird.Apps.Calendar.ViewModels
         public Action<UIModels.CalenderUI> InsertCalenderAction { get; set; }
         public Action<UIModels.CalenderUI> UpdateCalenderAction { get; set; }
         public Action<UIModels.CalenderUI> DeleteCalenderAction { get; set; }
-        public Action CancelCalenderAction { get; set; }
+        public void CancelCalenderAction()
+        {
+            _currentWindowService.Close();
+        }
+
+
+
+        /// <summary>
+        /// Devexpress dialog services
+        /// </summary>
+        IServiceContainer _serviceContainer;
+        public IServiceContainer ServiceContainer
+        {
+            get
+            {
+                if (_serviceContainer == null) { _serviceContainer = new ServiceContainer(this); }
+                return _serviceContainer;
+            }
+        }
+
+        ICurrentWindowService _currentWindowService { get { return _serviceContainer.GetService<ICurrentWindowService>(); } }
+       
 
     }
 }

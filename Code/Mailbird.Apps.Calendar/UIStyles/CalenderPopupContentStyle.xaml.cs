@@ -15,24 +15,13 @@ using System.Windows.Shapes;
 namespace Mailbird.Apps.Calendar.UIStyles
 {
     /// <summary>
-    /// Interaction logic for UserControl1.xaml
+    /// Interaction logic for CalenderPopupContentStyle.xaml
     /// </summary>
-    public partial class CalenderPopupContentStyle
+    public partial class CalenderPopupContentStyle : UserControl
     {
-        //private static CalenderPopupContentStyle _control;
-
         public CalenderPopupContentStyle()
         {
             InitializeComponent();
         }
-
-
-        //public static CalenderPopupContentStyle GetInstance()
-        //{
-        //    if (_control == null) { _control = new CalenderPopupContentStyle(); }
-        //    return _control;
-        //}
-
-
     }
 }

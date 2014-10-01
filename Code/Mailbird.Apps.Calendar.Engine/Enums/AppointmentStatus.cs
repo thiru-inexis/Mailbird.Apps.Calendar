@@ -5,10 +5,14 @@ using System.Text;
 
 namespace Mailbird.Apps.Calendar.Engine.Enums
 {
+    /// <summary>
+    /// The status of an appointment
+    /// Maps with iCal format
+    /// </summary>
     public enum AppointmentStatus
     {
-        Confirmed = 0,
-        UnCertain = 1,
+        Tentative = 0,
+        Confirmed = 1,
         Cancelled = 2
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Mailbird.Apps.Calendar.Engine.Metadata
 {
+
     public class Attendee: LocalStorageData
     {
         public string Email { get; set; }

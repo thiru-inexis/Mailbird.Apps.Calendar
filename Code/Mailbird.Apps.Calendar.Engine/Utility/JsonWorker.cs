@@ -39,15 +39,12 @@ namespace Mailbird.Apps.Calendar.Engine.Utility
 
         public void Write(T data)
         {
-            //using (FileStream fStream = new FileStream(_filePath, FileMode.OpenOrCreate))
-            //{
-                using (StreamWriter wStream = new StreamWriter(_filePath, false))
-                {
-                    wStream.Write(Searialize(data));
-                }
-            //}
 
-            //File.WriteAllText(_filePath, Searialize(data));
+            using (StreamWriter wStream = new StreamWriter(_filePath, false))
+            {
+                wStream.Write(Searialize(data));
+            }
+
         }
 
 

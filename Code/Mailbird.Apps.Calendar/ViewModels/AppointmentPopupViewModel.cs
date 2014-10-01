@@ -10,142 +10,55 @@ using Appointment = DevExpress.XtraScheduler.Appointment;
 using ViewModelBase = Mailbird.Apps.Calendar.Infrastructure.ViewModelBase;
 using DevExpress.Mvvm;
 using Mailbird.Apps.Calendar.UIModels;
+using Mailbird.Apps.Calendar.Enums;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Controls;
 
 
 namespace Mailbird.Apps.Calendar.ViewModels
 {
-    public class AppointmentPopupViewModel : Infrastructure.ViewModelBase
+    /// <summary>
+    /// To be binded to the Appointment edit/add form
+    /// </summary>
+    public class AppointmentPopupViewModel : Infrastructure.ViewModelBase, ISupportServices
     {
         private UIModels.AppointmentUI _bm;
         private Appointment _appointment;
+        private ObservableCollection<UIModels.ContactUI> _quests;
 
         protected DelegateCommand _insertUICommand;
         protected DelegateCommand _updateUICommand;
         protected DelegateCommand _cancelUICommand;
         protected DelegateCommand _deleteUICommand;
+        protected DelegateCommand<ListBoxItem> _removeQuestUICommand;
+        protected DelegateCommand<RoutedEventArgs> _addQuestUICommand;
 
-        protected bool _isLocationPopupOpen;
+        protected string _toAddQuestEmail;
         protected List<string> _startTimeSuggestions;
         protected List<string> _endTimeSuggestions;
-        protected UIModels.ReminderType _selectedReminderType;
+        protected ReminderType _selectedReminderType;
         protected int _reminderDuration;
+        private bool _isLocationPopupOpen;
+
 
         protected List<UIModels.CalenderUI> _availableCalenders;
 
         public CalenderUI DefaultCalender;
 
+
         public AppointmentPopupViewModel()
         {
             _bm = new UIModels.AppointmentUI();
             SelectedAppointments = new ObservableCollection<Appointment>();
+            Quests = new ObservableCollection<ContactUI>();
             CreateReminderCollecton();
          
             GenerateStartTimeSuggestions();
             GenerateEndTimeSuggestions();
         }
 
-        private void CreateReminderCollecton()
-        {
-            var dictionart = new List<KeyValuePair<int, string>>
-            {
-                new KeyValuePair<int, string>(0, "None"),
-                new KeyValuePair<int, string>(300, "5 Minutes"),
-                new KeyValuePair<int, string>(600, "10 Minutes"),
-                new KeyValuePair<int, string>(900, "15 Minutes"),
-                new KeyValuePair<int, string>(1200, "20 Minutes"),
-                new KeyValuePair<int, string>(1500, "25 Minutes"),
-                new KeyValuePair<int, string>(1800, "30 Minutes"),
-                new KeyValuePair<int, string>(3600, "1 Hours"),
-                new KeyValuePair<int, string>(7200, "2 Hours"),
-                new KeyValuePair<int, string>(10800, "3 Hours"),
-                new KeyValuePair<int, string>(14400, "4 Hours"),
-                new KeyValuePair<int, string>(18000, "5 Hours"),
-                new KeyValuePair<int, string>(21600, "6 Hours"),
-                new KeyValuePair<int, string>(43200, "0.5 Days"),
-                new KeyValuePair<int, string>(86400, "1 Days"),
-                new KeyValuePair<int, string>(172800, "2 Days")
-            };
-            //SelectedReminder = dictionart[0];
-            ReminderCollection = dictionart;
-        }
-
-        private void GenerateStartTimeSuggestions()
-        {
-            var converter = new UIResources.Converters.TimeSpanToStringConverter();
-            this.StartTimeSuggestions = GetTimeSuggestions().Select(m => (string)converter.Convert(m, null, null, null)).ToList();
-        }
-
-        private void GenerateEndTimeSuggestions()
-        {
-            var converter = new UIResources.Converters.TimeSpanToStringConverter();
-
-            var suggestions = GetTimeSuggestions();
-            if(StartDate.Equals(EndDate))
-            {
-                suggestions = suggestions.Where(m => (m > StartTime)).ToList();
-            }
-
-            this.EndTimeSuggestions = suggestions.Select(m => (string)converter.Convert(m, null, null, null)).ToList();
-        }
-
-        private List<TimeSpan> GetTimeSuggestions()
-        {
-            var result = new List<TimeSpan>();
-            var interval = new TimeSpan( TimeSpan.TicksPerMinute * 30);
-            var temp = TimeSpan.Zero;
-
-            while(temp.Ticks < TimeSpan.TicksPerDay)
-            {
-                result.Add(temp);
-                temp = temp.Add(interval);
-            }
-
-            return result;
-        }
-
-
-        //public void OkCommandeExecute()
-        //{
-        //    IsOpen = false;
-        //    if (CurrentAppointmentId != null)
-        //    {
-        //        var appointment = new Mailbird.Apps.Calendar.Engine.Metadata.Appointment
-        //        {
-        //            Id = CurrentAppointmentId.ToString(),
-        //            Subject = Subject,
-        //            Location = Location,
-        //            StartTime = StartDate.Date + (AllDayEvent ? DateTime.Parse(DefaultTimeValue).TimeOfDay : DateTime.Parse(StartTime).TimeOfDay),
-        //            EndTime = EndDate.Date + (AllDayEvent ? DateTime.Parse(DefaultTimeValue).TimeOfDay : DateTime.Parse(EndTime).TimeOfDay),
-        //            AllDayEvent = AllDayEvent,
-        //            LabelId = LabelId,
-        //            Description = Description,
-        //            StatusId = StatusId,
-        //            //ResourceId = ResourceId,
-        //            CalendarId = SelectedCalendar.Id
-        //        };
-        //        appointment.ReminderInfo = GetReminderInfo(appointment);
-        //        UpdateAppointmentAction(CurrentAppointmentId, appointment);
-        //    }
-        //    else
-        //    {
-        //        var appointment = new Mailbird.Apps.Calendar.Engine.Metadata.Appointment
-        //        {
-        //            Id = Guid.NewGuid().ToString(),
-        //            Subject = Subject,
-        //            Location = Location,
-        //            StartTime = StartDate.Date + (AllDayEvent ? DateTime.Parse(DefaultTimeValue).TimeOfDay : DateTime.Parse(StartTime).TimeOfDay),
-        //            EndTime = EndDate.Date + (AllDayEvent ? DateTime.Parse(DefaultTimeValue).TimeOfDay : DateTime.Parse(EndTime).TimeOfDay),
-        //            AllDayEvent = AllDayEvent,
-        //            LabelId = LabelId,
-        //            Description = Description,
-        //            StatusId = StatusId,
-        //            //ResourceId = ResourceId,
-        //            CalendarId = SelectedCalendar.Id
-        //        };
-        //        appointment.ReminderInfo = GetReminderInfo(appointment);
-        //        AddAppointmentAction(appointment);
-        //    }
-        //}
+    
 
         #region Bindable Properties
 
@@ -196,6 +109,32 @@ namespace Mailbird.Apps.Calendar.ViewModels
             }
         }
 
+        public DelegateCommand<ListBoxItem> RemoveQuestUICommand
+        {
+            get
+            {
+                if (_removeQuestUICommand == null)
+                {
+                    _removeQuestUICommand = new DelegateCommand<ListBoxItem>(OnRemoveQuestUICommand, true);
+                }
+                return _removeQuestUICommand;
+            }
+        }
+
+
+        public DelegateCommand<RoutedEventArgs> AddQuestUICommand
+        {
+            get
+            {
+                if (_addQuestUICommand == null)
+                {
+                    _addQuestUICommand = new DelegateCommand<RoutedEventArgs>(OnAddQuestUICommand, true);
+                }
+                return _addQuestUICommand;
+            }
+        }
+
+
 
 
         private void OnInsertCommandInvoked()
@@ -218,6 +157,36 @@ namespace Mailbird.Apps.Calendar.ViewModels
             CancelPopUpAction();
         }
 
+        private void OnRemoveQuestUICommand(ListBoxItem paramter)
+        {
+            if (paramter == null) { return; }
+            if (!(paramter.Content is ContactUI)) { return; }
+
+            var elementToRemove = _quests.FirstOrDefault(m => m.Email.Equals((paramter.Content as ContactUI).Email, StringComparison.InvariantCultureIgnoreCase));
+            if (elementToRemove == null) { return; }
+            Quests.Remove(elementToRemove);
+            //if (((KeyEventArgs)paramter).Key != Key.Enter) { return; }
+        }
+
+        private void OnAddQuestUICommand(RoutedEventArgs paramter)
+        {
+            if (paramter == null) { return; }
+            if (((KeyEventArgs)paramter).Key != Key.Enter) { return; }
+
+            paramter.Handled = true;
+            if (!string.IsNullOrWhiteSpace(ToAddQuestEmail) && !_quests.Any(m => (m.Email.Equals(ToAddQuestEmail, StringComparison.InvariantCultureIgnoreCase))))
+            {
+                var newContact = new ContactUI()
+                {
+                    Email = ToAddQuestEmail,
+                    FirstName = ToAddQuestEmail.Substring(0, ToAddQuestEmail.IndexOf("@")), // to test
+                    LastName = "",
+                    ProfileImgPath = ""
+                };
+                Quests.Add(newContact);
+                ToAddQuestEmail = "";
+            }
+        }
 
         public UIModels.AppointmentUI SelectedAppointment
         {
@@ -251,7 +220,29 @@ namespace Mailbird.Apps.Calendar.ViewModels
             }
         }
 
-        public UIModels.ReminderType SelectedReminderType
+        public string ToAddQuestEmail
+        {
+            get { return _toAddQuestEmail; }
+            set
+            {
+                _toAddQuestEmail = value;
+                RaisePropertyChanged(() => ToAddQuestEmail);
+            }
+        }
+
+
+        public ObservableCollection<UIModels.ContactUI> Quests
+        {
+            get { return _quests; }
+            set
+            {
+                _quests = value;
+                RaisePropertyChanged(() => Quests);
+            }
+        }
+
+
+        public ReminderType SelectedReminderType
         {
             get { return _selectedReminderType; }
             set
@@ -309,15 +300,15 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         private void UpdateReminderUIwithLogic(bool hasUIPropertyChanged = false)
         {
-            var LogicDic = new Dictionary<UIModels.ReminderType, long>();
-            LogicDic[UIModels.ReminderType.Minutes] = TimeSpan.TicksPerMinute;
-            LogicDic[UIModels.ReminderType.Hours] = TimeSpan.TicksPerHour;
-            LogicDic[UIModels.ReminderType.Days] = TimeSpan.TicksPerDay;
-            LogicDic[UIModels.ReminderType.Weeks] = (TimeSpan.TicksPerDay * 7);
+            var LogicDic = new Dictionary<ReminderType, long>();
+            LogicDic[ReminderType.Minutes] = TimeSpan.TicksPerMinute;
+            LogicDic[ReminderType.Hours] = TimeSpan.TicksPerHour;
+            LogicDic[ReminderType.Days] = TimeSpan.TicksPerDay;
+            LogicDic[ReminderType.Weeks] = (TimeSpan.TicksPerDay * 7);
 
             if (hasUIPropertyChanged) { _bm.PreReminderDuration = new TimeSpan(LogicDic[SelectedReminderType] * ReminderDuration); }
 
-            var bestMatchingType = UIModels.ReminderType.Minutes;
+            var bestMatchingType = ReminderType.Minutes;
             var bestMatchingRemDuration = 0;
 
             if (_bm.PreReminderDuration.TotalMinutes > 0)
@@ -522,11 +513,11 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
 
                 
-        public List<UIModels.ReminderType> SupportedReminderTypes
+        public List<ReminderType> SupportedReminderTypes
         {
             get { 
 
-              var result = Enum.GetValues(typeof( UIModels.ReminderType)).Cast<UIModels.ReminderType>().ToList();
+              var result = Enum.GetValues(typeof(ReminderType)).Cast<ReminderType>().ToList();
             
 
                 return result;
@@ -595,6 +586,7 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         #endregion
 
+
         #region Public Properties
 
         public Action<AppointmentUI> InsertAppointmentAction { get; set; }
@@ -603,7 +595,10 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         public Action<AppointmentUI> DeleteAppointmentAction { get; set; }
 
-        public Action CancelPopUpAction { get; set; }
+        public void CancelPopUpAction ()
+        {
+            _currentWindowService.Close();
+        }
 
 
         public DateTime SelectedStartDateTime { get; set; }
@@ -612,7 +607,16 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         //public bool IsEdited { get { return CheckOnEdit(); } }
 
+
+
+
+        private void AddQuestsEditorActivated(object sender, RoutedEventArgs e)
+        {
+           
+        }
+
         #endregion
+
 
         #region Private members
 
@@ -620,144 +624,85 @@ namespace Mailbird.Apps.Calendar.ViewModels
 
         #endregion
 
+
         #region Private methods & helpers
 
-        //private void ShowSelectedAppointment()
-        //{
-        //    if (SelectedAppointments != null && SelectedAppointments.Any())
-        //    {
-        //        SetAppointment(SelectedAppointments.First());
-        //    }
-        //    else
-        //    {
-        //        Subject = null;
-        //        Location = null;
-        //        LabelId = 0;
-        //        StatusId = 0;
-        //        AllDayEvent = false;
-        //        Description = null;
-        //        //Resolve date time to format that is used on view
-        //        StartDate = DateTime.ParseExact(SelectedStartDateTime.ToString("MM-dd-yyyy HH:mm:ss"), "MM-dd-yyyy HH:mm:ss", CultureInfo.InvariantCulture).Date;
-        //        EndDate = DateTime.ParseExact(SelectedStartDateTime.ToString("MM-dd-yyyy HH:mm:ss"), "MM-dd-yyyy HH:mm:ss", CultureInfo.InvariantCulture).Date;
-        //        StartTime = SelectedStartDateTime.TimeOfDay.ToString();
-        //        EndTime = SelectedStartDateTime.TimeOfDay.ToString();
-        //        SelectedReminder= ReminderCollection[0];
-        //        CurrentAppointmentId = null;
-        //    }
-        //}
+        private void CreateReminderCollecton()
+        {
+            var dictionart = new List<KeyValuePair<int, string>>
+            {
+                new KeyValuePair<int, string>(0, "None"),
+                new KeyValuePair<int, string>(300, "5 Minutes"),
+                new KeyValuePair<int, string>(600, "10 Minutes"),
+                new KeyValuePair<int, string>(900, "15 Minutes"),
+                new KeyValuePair<int, string>(1200, "20 Minutes"),
+                new KeyValuePair<int, string>(1500, "25 Minutes"),
+                new KeyValuePair<int, string>(1800, "30 Minutes"),
+                new KeyValuePair<int, string>(3600, "1 Hours"),
+                new KeyValuePair<int, string>(7200, "2 Hours"),
+                new KeyValuePair<int, string>(10800, "3 Hours"),
+                new KeyValuePair<int, string>(14400, "4 Hours"),
+                new KeyValuePair<int, string>(18000, "5 Hours"),
+                new KeyValuePair<int, string>(21600, "6 Hours"),
+                new KeyValuePair<int, string>(43200, "0.5 Days"),
+                new KeyValuePair<int, string>(86400, "1 Days"),
+                new KeyValuePair<int, string>(172800, "2 Days")
+            };
+            //SelectedReminder = dictionart[0];
+            ReminderCollection = dictionart;
+        }
 
-        //private void EndDateValidation()
-        //{
-        //    if (StartDate.Date > EndDate.Date)
-        //    {
-        //        _endDate = StartDate;
-        //        RaisePropertyChanged(()=>EndDate);
-        //    }
+        private void GenerateStartTimeSuggestions()
+        {
+            var converter = new UIResources.Converters.TimeSpanToStringConverter();
+            this.StartTimeSuggestions = GetTimeSuggestions().Select(m => (string)converter.Convert(m, null, null, null)).ToList();
+        }
 
-        //    if (StartDate.Date == EndDate.Date)
-        //    {
-        //        if (DateTime.Parse(StartTime).TimeOfDay > DateTime.Parse(EndTime).TimeOfDay)
-        //        {
-        //            _endTime = StartTime;
-        //            RaisePropertyChanged(()=>EndTime);
-        //        }
-        //    }
+        private void GenerateEndTimeSuggestions()
+        {
+            var converter = new UIResources.Converters.TimeSpanToStringConverter();
 
-        //    AllDayEventValidation();
-        //}
+            var suggestions = GetTimeSuggestions();
+            if (StartDate.Equals(EndDate))
+            {
+                suggestions = suggestions.Where(m => (m > StartTime)).ToList();
+            }
 
-        //private void AllDayEventValidation()
-        //{
-        //    if (!AllDayEvent) return;
+            this.EndTimeSuggestions = suggestions.Select(m => (string)converter.Convert(m, null, null, null)).ToList();
+        }
 
-        //    _startTime = DefaultTimeValue;
-        //    RaisePropertyChanged(() => StartTime);
-            
-        //    _endTime = DefaultTimeValue;
-        //    RaisePropertyChanged(() => EndTime);
-            
-        //    if (Math.Abs((EndDate - StartDate).TotalDays) < 1)
-        //    {
-        //        _endDate = EndDate.AddDays(1);
-        //        RaisePropertyChanged(() => EndDate);
-        //    }
+        private List<TimeSpan> GetTimeSuggestions()
+        {
+            var result = new List<TimeSpan>();
+            var interval = new TimeSpan(TimeSpan.TicksPerMinute * 30);
+            var temp = TimeSpan.Zero;
 
-        //    if ((int)Math.Abs((EndDate - StartDate).TotalDays) == 1)
-        //    {
-        //        if (DateTime.Parse(StartTime).TimeOfDay > DateTime.Parse(EndTime).TimeOfDay)
-        //        {
-        //            _endTime = StartTime;
-        //            RaisePropertyChanged(() => EndTime);
-        //        }
-        //    }
-        //}
+            while (temp.Ticks < TimeSpan.TicksPerDay)
+            {
+                result.Add(temp);
+                temp = temp.Add(interval);
+            }
 
-        //private string GetReminderInfo(Mailbird.Apps.Calendar.Engine.Metadata.Appointment appointment)
-        //{
-        //    if (SelectedReminder.Key != 0)
-        //    {
-        //        var apt = new Appointment(AppointmentType.Normal, appointment.StartTime, appointment.EndTime);
-        //        var reminder = apt.CreateNewReminder();
-        //        reminder.TimeBeforeStart = TimeSpan.FromSeconds(SelectedReminder.Key);
-        //        apt.Reminders.Add(reminder);
-        //        var helper =
-        //            ReminderCollectionXmlPersistenceHelper.CreateSaveInstance(apt, DateSavingType.LocalTime);
-        //        return helper.ToXml();
-        //    }
-        //    return null;
-        //}
+            return result;
+        }
 
-        //private void SetAppointment(Appointment appointment)
-        //{
-        //    CurrentAppointmentId = appointment.Id;
-        //    Subject = appointment.Subject;
-        //    Location = appointment.Location;
-        //    StartDate = appointment.Start.Date;
-        //    StartTime = appointment.Start.ToString("MM-dd-yyyy HH:mm:ss");
-        //    EndDate = appointment.End.Date;
-        //    EndTime = appointment.End.ToString("MM-dd-yyyy HH:mm:ss");
-        //    LabelId = appointment.LabelId;
-        //    ResourceId = appointment.ResourceId;
-        //    StatusId = appointment.StatusId;
-        //    AllDayEvent = appointment.AllDay;
-        //    Description = appointment.Description;
-        //    //if appointment has reminder we look for the closest time to our defoult remanders
-        //    if (appointment.Reminder != null)
-        //    {
-        //       var closestKeyPair =
-        //            ReminderCollection.First(
-        //                n => Math.Abs(appointment.Reminder.TimeBeforeStart.TotalSeconds - n.Key) < double.Epsilon);
-        //        SelectedReminder = closestKeyPair;
-        //    }
-        //    else
-        //    {
-        //        SelectedReminder = ReminderCollection[0];
-        //    }
-        //    Appointment = appointment;
-        //    SelectedCalendar = appointment.CustomFields["cfCalendar"] as Mailbird.Apps.Calendar.Engine.Metadata.Calendar;
-        //}
-
-        //private bool CheckOnEdit()
-        //{
-        //    if (CurrentAppointmentId == null)
-        //        return !string.IsNullOrEmpty(Description)
-        //               || !string.IsNullOrEmpty(Subject)
-        //               || !string.IsNullOrEmpty(Location);
-
-        //    return Subject != _appointment.Subject
-        //               || Location != _appointment.Location
-        //               || StartDate.Date != _appointment.Start.Date
-        //               || EndDate.Date != _appointment.End.Date
-        //               || StartTime != (AllDayEvent ? DefaultTimeValue :_appointment.Start.ToString("MM-dd-yyyy HH:mm:ss"))
-        //               || EndTime != (AllDayEvent ? DefaultTimeValue :_appointment.End.ToString("MM-dd-yyyy HH:mm:ss"))
-        //               || AllDayEvent != _appointment.AllDay
-        //               || LabelId != _appointment.LabelId
-        //               || StatusId != _appointment.StatusId
-        //               || ResourceId != _appointment.ResourceId
-        //               || (_appointment.Reminder != null && Math.Abs(_appointment.Reminder.TimeBeforeStart.TotalSeconds - SelectedReminder.Key) > double.Epsilon)
-        //               || (_appointment.Reminder == null && SelectedReminder.Key != 0)
-        //               || Description != _appointment.Description;
-        //}
         #endregion
+
+
+
+
+        IServiceContainer _serviceContainer;
+        public IServiceContainer ServiceContainer
+        {
+            get
+            {
+                if (_serviceContainer == null) { _serviceContainer = new ServiceContainer(this); }
+                return _serviceContainer;
+            }
+        }
+
+        ICurrentWindowService _currentWindowService { get { return _serviceContainer.GetService<ICurrentWindowService>(); } }
+       
+
     }
 }

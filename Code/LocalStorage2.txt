@@ -1,0 +1,37 @@
+{
+  "UserInfos": [
+    {
+      "Username": "eswar.beingmyself@gmail.com",
+      "IsSelected": true,
+      "Color": {
+        "Background": "#000000",
+        "Foreground": "#FFFFFF",
+        "Id": null,
+        "LocalStorageState": 0
+      },
+      "CreatedOn": "2014-09-27T08:52:47.8400805+05:30",
+      "UpdatedOn": "2014-09-27T08:52:47.8400805+05:30",
+      "Id": "a0f7ef70-289b-4110-b7df-0102a9e050c6",
+      "LocalStorageState": 1
+    },
+    {
+      "Username": "eswar.beingmyself@gmail.com",
+      "IsSelected": true,
+      "Color": {
+        "Background": "#000000",
+        "Foreground": "#FFFFFF",
+        "Id": null,
+        "LocalStorageState": 0
+      },
+      "CreatedOn": "2014-09-27T08:52:47.8400805+05:30",
+      "UpdatedOn": "2014-09-27T08:52:47.8400805+05:30",
+      "Id": "8adbb064-0129-4ad6-b7c4-d4d6e3810b54",
+      "LocalStorageState": 1
+    }
+  ],
+  "Calendars": [],
+  "Appointments": [],
+  "CalendarColors": [],
+  "AppointmentColors": [],
+  "SynTokens": []
+}

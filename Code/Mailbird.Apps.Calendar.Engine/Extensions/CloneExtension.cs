@@ -4,7 +4,10 @@ using Mailbird.Apps.Calendar.Engine.Enums;
 using Mailbird.Apps.Calendar.Engine.Metadata;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Windows.Media;
 
@@ -20,13 +23,169 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
 
     public static class CloneExtension
     {
+
+        #region Self Clones
+
+        /// <summary>
+        /// Clones ColorDefinition
+        /// </summary>
+        /// <param name="source">Object to clone from</param>
+        /// <returns>Deep copy of the source</returns>
+        public static Metadata.ColorDefinition Clone(this Metadata.ColorDefinition source)
+        {
+            Metadata.ColorDefinition result = null;
+            if (source != null)
+            {
+                result = new Metadata.ColorDefinition()
+                {
+                    Id = source.Id,
+                    LocalStorageState = source.LocalStorageState,
+                    Background = source.Background,
+                    Foreground = source.Foreground
+                };
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Clones CalendarList
+        /// </summary>
+        /// <param name="source">Object to clone from</param>
+        /// <returns>Deep copy of the source</returns>
+        public static Metadata.CalendarList Clone(this Metadata.CalendarList source)
+        {
+            Metadata.CalendarList result = null;
+            if (source != null)
+            {
+                result = new Metadata.CalendarList()
+                {
+                    Etag = source.Etag,
+                    Kind = source.Kind,
+
+                    Id = source.Id,
+                    LocalStorageState = source.LocalStorageState,
+                    IsSelected = source.IsSelected,
+                    IsHidden = source.IsHidden,
+                    IsDeleted = source.IsDeleted,
+                    AccessRole = source.AccessRole,
+                    ColorId = source.ColorId,
+                    Color = source.Color.Clone(),
+                    SummaryOverride = source.SummaryOverride
+                };
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Clones Calendar
+        /// </summary>
+        /// <param name="source">Object to clone from</param>
+        /// <returns>Deep copy of the source</returns>
+        public static Metadata.Calendar Clone(this Metadata.Calendar source)
+        {
+            Metadata.Calendar result = null;
+            if (source != null)
+            {
+                result = new Metadata.Calendar()
+                {
+                    Etag = source.Etag,
+                    Kind = source.Kind,
+
+                    Id = source.Id,
+                    UserId = source.UserId,
+                    LocalStorageState = source.LocalStorageState,
+                    Summary = source.Summary,
+                    Description = source.Description,
+                    Location = source.Location,
+                    TimeZone = TimeZoneInfo.FindSystemTimeZoneById(source.TimeZone.Id),
+                    CalenderList = source.CalenderList.Clone()
+                };
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Clones Reminder
+        /// </summary>
+        /// <param name="source">Object to clone from</param>
+        /// <returns>Deep copy of the source</returns>
+        public static Metadata.Reminder Clone(this Metadata.Reminder source)
+        {
+            Metadata.Reminder result = null;
+            if (source != null)
+            {
+                result = new Metadata.Reminder()
+                {
+                     Duration = new TimeSpan(source.Duration.Ticks),
+                      Type = source.Type
+                };
+            }
+
+            return result;
+        }
+
+
+
+        /// <summary>
+        /// Clones Appointment
+        /// </summary>
+        /// <param name="source">Object to clone from</param>
+        /// <returns>Deep copy of the source</returns>
+        public static Metadata.Appointment Clone(this Metadata.Appointment source)
+        {
+            Metadata.Appointment result = null;
+            if (source != null)
+            {
+                result = new Metadata.Appointment()
+                {
+                    Etag = source.Etag,
+                    Kind = source.Kind,
+
+                    Id = source.Id,
+                    CalendarId = source.CalendarId,
+                    ICalUID = source.ICalUID,
+                    LocalStorageState = source.LocalStorageState,
+                    Summary = source.Summary,
+                    Description = source.Description,
+                    Location = source.Location,
+                    ColorId = source.ColorId,
+                    Color = source.Color.Clone(),
+                    StartTime = new DateTime(source.StartTime.Ticks),
+                    Transparency = source.Transparency,
+                    Status = source.Status,
+                    Reminders = source.Reminders.Select(m => m.Clone()).ToList(),
+                    EndTime = new DateTime(source.EndTime.Ticks),
+                    HtmlLink = source.HtmlLink,
+                    IsLocked = source.IsLocked,
+                    IsPrivateCopy = source.IsPrivateCopy,
+                    IsAnyoneCanAddSelf = source.IsAnyoneCanAddSelf,
+                    IsGuestsCanInviteOthers = source.IsGuestsCanInviteOthers,
+                    IsGuestsCanModify = source.IsGuestsCanModify,
+                    IsGuestsCanSeeOtherGuests = source.IsGuestsCanSeeOtherGuests,
+                    Created = new DateTime(source.Created.Ticks),
+                    Updated = new DateTime(source.Updated.Ticks)
+                };
+            }
+
+            return result;
+        }
+
+        #endregion
+
+
         /// <summary>
         /// Clones google calender event to mailbirds's appointment type
         /// </summary>
         /// <param name="source"></param>
         /// <param name="calender"></param>
         /// <returns></returns>
-        public static Appointment Clone(this Event source, string calenderId)
+        public static Appointment CloneTo(this Event source, string calenderId)
         {
             Appointment result = null;
 
@@ -55,12 +214,12 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
                     IsLocked = source.Locked ?? false,
 
                     Status = (source.Status.Equals("cancelled", StringComparison.CurrentCultureIgnoreCase) ?  AppointmentStatus.Cancelled
-                             :source.Status.Equals("tentative", StringComparison.CurrentCultureIgnoreCase) ?  AppointmentStatus.UnCertain
+                             :source.Status.Equals("tentative", StringComparison.CurrentCultureIgnoreCase) ?  AppointmentStatus.Tentative
                              :AppointmentStatus.Confirmed),
                     Transparency = (source.Transparency == null || source.Transparency.Equals("transparent", StringComparison.CurrentCultureIgnoreCase) ? AppointmentTransparency.Transparent
                                     :AppointmentTransparency.Opaque),
                     Reminders = (source.Reminders.Overrides != null) 
-                                ? source.Reminders.Overrides.Select(m => m.Clone()).ToList() 
+                                ? source.Reminders.Overrides.Select(m => m.CloneTo()).ToList() 
                                 : new List<Reminder>()
                 };
             }
@@ -69,7 +228,7 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
         }
 
 
-        public static Reminder Clone(this EventReminder source)
+        public static Reminder CloneTo(this EventReminder source)
         {
             Reminder result = null;
             if (source != null)
@@ -87,7 +246,7 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
         }
 
 
-        public static EventReminder Clone(this Reminder source)
+        public static EventReminder CloneTo(this Reminder source)
         {
             EventReminder result = null;
             if (source != null)
@@ -108,7 +267,7 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        public static Event Clone(this Appointment source)
+        public static Event CloneTo(this Appointment source)
         {
             Event result = null;
 
@@ -136,14 +295,14 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
                     Locked = source.IsLocked,
 
                     Status = (source.Status == AppointmentStatus.Cancelled ? "cancelled"
-                             : source.Status == AppointmentStatus.UnCertain ? "tentative" : "confirmed"),
+                             : source.Status == AppointmentStatus.Tentative ? "tentative" : "confirmed"),
                     Transparency = (source.Transparency == AppointmentTransparency.Transparent ? "transparent" : "opaque"),
 
                     Reminders = (source.Reminders == null ? null
                                 : new Event.RemindersData() 
                                 {
                                      UseDefault = false,
-                                     Overrides = source.Reminders.Select(m => m.Clone()).ToList()
+                                     Overrides = source.Reminders.Select(m => m.CloneTo()).ToList()
                                 })
                 };
             }
@@ -153,7 +312,7 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
 
 
 
-        public static Metadata.Calendar Clone(this Google.Apis.Calendar.v3.Data.Calendar source)
+        public static Metadata.Calendar CloneTo(this Google.Apis.Calendar.v3.Data.Calendar source, string userId)
         {
             Metadata.Calendar result = null;
 
@@ -162,12 +321,13 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
                 result = new Metadata.Calendar()
                 {
                     Id = source.Id,
+                    UserId = userId,
                     Kind = source.Kind,
                     Etag = source.ETag,
                     Summary = source.Summary,
                     Description = source.Description,
-                    Location = source.Location,
-                    TimeZone = source.TimeZone
+                    Location = source.Location
+                    //TimeZone = source.TimeZone
                 };
             }
 
@@ -175,7 +335,7 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
         }
 
 
-        public static Google.Apis.Calendar.v3.Data.Calendar Clone(this Metadata.Calendar source)
+        public static Google.Apis.Calendar.v3.Data.Calendar CloneTo(this Metadata.Calendar source)
         {
             Google.Apis.Calendar.v3.Data.Calendar result = null;
 
@@ -188,8 +348,8 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
                     ETag = source.Etag,
                     Summary = source.Summary,
                     Description = source.Description,
-                    Location = source.Location,
-                    TimeZone = source.TimeZone
+                    Location = source.Location
+                   // TimeZone = source.TimeZone
                 };
             }
 
@@ -197,7 +357,7 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
         }
 
 
-        public static Metadata.CalendarList Clone(this CalendarListEntry source)
+        public static Metadata.CalendarList CloneTo(this CalendarListEntry source)
         {
             Metadata.CalendarList result = null;
             if (source != null)
@@ -205,18 +365,17 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
                 var gAccessRole = Google.Apis.Calendar.v3.CalendarListResource.ListRequest.MinAccessRoleEnum.FreeBusyReader;
                 Enum.TryParse(source.AccessRole, out gAccessRole);
 
-                result = new Metadata.CalendarList()
+                result = new Metadata.CalendarList(source.Primary ?? false)
                 {
                     Id = source.Id,
-                    Summary = source.Summary,
-                    Description = source.Description,
-                    BackgroundColor = source.BackgroundColor,
-                    ForegroundColor = source.ForegroundColor,
+                    //Summary = source.Summary,
+                    //Description = source.Description,
+                    //BackgroundColor = source.BackgroundColor,
+                    //ForegroundColor = source.ForegroundColor,
                     ColorId = source.ColorId,
                     IsDeleted = source.Deleted ?? false,
                     IsSelected = source.Selected ?? false,
-                    IsPrimary = source.Primary ?? false,
-                    AccessRole = gAccessRole.Clone()
+                    AccessRole = gAccessRole.CloneTo()
                 };
             }
 
@@ -224,7 +383,7 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
         }
 
 
-        public static CalendarListEntry Clone(this Metadata.CalendarList source)
+        public static CalendarListEntry CloneTo(this Metadata.CalendarList source)
         {
             CalendarListEntry result = null;
 
@@ -233,15 +392,15 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
                 result = new CalendarListEntry()
                 {
                     Id = source.Id,
-                    Summary = source.Summary,
-                    Description = source.Description,
-                    BackgroundColor = source.BackgroundColor,
-                    ForegroundColor = source.ForegroundColor,
+                    //Summary = source.Summary,
+                    //Description = source.Description,
+                    //BackgroundColor = source.BackgroundColor,
+                    //ForegroundColor = source.ForegroundColor,
                     ColorId = source.ColorId,
                     Deleted = source.IsDeleted,
                     Selected = source.IsSelected,
                     Primary = source.IsPrimary,
-                    AccessRole = source.AccessRole.Clone().ToString()
+                    AccessRole = source.AccessRole.CloneTo().ToString()
                 };
             }
 
@@ -253,24 +412,24 @@ namespace Mailbird.Apps.Calendar.Engine.Extensions
 
 
 
-        public static Access Clone(this Google.Apis.Calendar.v3.CalendarListResource.ListRequest.MinAccessRoleEnum source)
+        public static AccessRole CloneTo(this Google.Apis.Calendar.v3.CalendarListResource.ListRequest.MinAccessRoleEnum source)
         {
-            Access result = Access.Read;
+            AccessRole result = AccessRole.Reader;
 
             if (source == CalendarListResource.ListRequest.MinAccessRoleEnum.Writer)
             {
-                result = Access.Write;
+                result = AccessRole.Writer;
             }
 
             return result;
         }
 
 
-        public static Google.Apis.Calendar.v3.CalendarListResource.ListRequest.MinAccessRoleEnum Clone(this Access source)
+        public static Google.Apis.Calendar.v3.CalendarListResource.ListRequest.MinAccessRoleEnum CloneTo(this AccessRole source)
         {
             Google.Apis.Calendar.v3.CalendarListResource.ListRequest.MinAccessRoleEnum result = CalendarListResource.ListRequest.MinAccessRoleEnum.FreeBusyReader;
 
-            if (source == Access.Write)
+            if (source == AccessRole.Writer)
             {
                 result = CalendarListResource.ListRequest.MinAccessRoleEnum.Writer;
             }

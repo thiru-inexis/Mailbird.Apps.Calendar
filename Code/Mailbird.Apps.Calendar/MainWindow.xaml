@@ -1,35 +1,67 @@
-﻿<dx:DXWindow xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"  
+﻿<dx:DXWindow xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars"  
+             xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"  
              xmlns:dxn="http://schemas.devexpress.com/winfx/2008/xaml/navbar" 
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
-    xmlns:dxsch="http://schemas.devexpress.com/winfx/2008/xaml/scheduler"
-    xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
-    xmlns:viewModel="clr-namespace:Mailbird.Apps.Calendar.ViewModels"
-    xmlns:customUIWidgets="clr-namespace:Mailbird.Apps.Calendar.UIControls"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
-    x:Class="Mailbird.Apps.Calendar.MainWindow"
-    Title="Mailbird Calendar" Height="600" Width="900"
-             dx:ThemeManager.ThemeName="MetropolisLight"
-    >
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+             xmlns:dxsch="http://schemas.devexpress.com/winfx/2008/xaml/scheduler"
+             xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:viewModel="clr-namespace:Mailbird.Apps.Calendar.ViewModels"     
+             xmlns:uiModel="clr-namespace:Mailbird.Apps.Calendar.UIModels"
+             xmlns:view="clr-namespace:Mailbird.Apps.Calendar.UIStyles"
+             x:Class="Mailbird.Apps.Calendar.MainWindow"
+             Title="Mailbird Calendar" Height="600" Width="900" 
+             FontFamily="Segoe UI, Tahoma, Arial, Arial Unicode MS, Microsoft Sans Serif, Lucida Sans Unicode" FontStyle="Normal"
+             mc:Ignorable="d" dx:ThemeManager.ThemeName="MetropolisLight">
 
     <dx:DXWindow.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="UIStyles/GeneralStyle.xaml" />
-                <ResourceDictionary Source="UIStyles/AppointmetStyle.xaml" />
-                <!--<ResourceDictionary Source="UIStyles/FlyoutContentStyle.xaml" />-->
-                <!--<ResourceDictionary Source="UIStyles/CalenderPopupContentStyle.xaml" />-->
+                <ResourceDictionary Source="UIStyles/AppointmentStyle.xaml" />
+                <ResourceDictionary Source="UIStyles/CellStyles.xaml" />
+                <ResourceDictionary Source="UIStyles/CalenderStyle.xaml" />
+                <ResourceDictionary Source="UIStyles/AppointmentDetailsPopup.xaml" />
                 <ResourceDictionary Source="UIStyles/SchedulerContentStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-
     </dx:DXWindow.Resources>
+
 
     <dx:DXWindow.DataContext>
         <viewModel:MainWindowViewModel />
     </dx:DXWindow.DataContext>
+
+
+    <dxmvvm:Interaction.Behaviors>
+        <dx:DialogService Name="AppointmentPopupService" DialogWindowStartupLocation="CenterOwner">
+            <dx:DialogService.ViewTemplate>
+                <DataTemplate>
+                    <view:AppointmentPopupStyle/>
+                </DataTemplate>
+            </dx:DialogService.ViewTemplate>
+            <dx:DialogService.DialogStyle>
+                <Style TargetType="dx:DXDialogWindow">
+                    <Setter Property="SizeToContent" Value="WidthAndHeight"/>
+                </Style>
+            </dx:DialogService.DialogStyle>
+        </dx:DialogService>
+        <dx:DialogService Name="CalenderPopupService" DialogWindowStartupLocation="CenterOwner">
+            <dx:DialogService.ViewTemplate>
+                <DataTemplate>
+                    <view:CalenderPopupContentStyle DataContext="{Binding}"/>
+                </DataTemplate>
+            </dx:DialogService.ViewTemplate>
+            <dx:DialogService.DialogStyle>
+                <Style TargetType="dx:DXDialogWindow">
+                    <Setter Property="SizeToContent" Value="WidthAndHeight"/>
+                </Style>
+            </dx:DialogService.DialogStyle>
+        </dx:DialogService>
+    </dxmvvm:Interaction.Behaviors>
 
 
     <Grid x:Name="LayoutRoot" Grid.IsSharedSizeScope="True">
@@ -38,6 +70,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- Search and View Selection -->
         <Grid Grid.Row="0" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -77,22 +110,15 @@
                     </Canvas>
                 </Button>
 
-                <dxe:DateEdit x:Name="DateSelector"
-					Mask="y"
-					Style="{StaticResource DateSelectorStyle}"
-					DateTime="{Binding Start, ElementName=Scheduler}"
-					GotFocus="UIElement_GotFocus">
-                    <dxe:DateEdit.StyleSettings>
-                        <dxe:DateEditPickerStyleSettings x:Name="DateEditPicker" />
-                    </dxe:DateEdit.StyleSettings>
-                </dxe:DateEdit>
+                <dxe:TextEdit  MinWidth="300" 
+                                  Style="{StaticResource McSearchTextInputControlStyle}"
+                                  EditValue="{Binding Path=SearchText}"
+                                  AcceptsReturn="False"/>
+                <dxmvvm:Interaction.Triggers>
+                    <dxmvvm:EventToCommand EventName="KeyDown" Command="{Binding SearchUICommand}" PassEventArgsToCommand="True" EventArgsConverter="{StaticResource KeyDownEventArgsConverter}"/>
+                </dxmvvm:Interaction.Triggers>
             </StackPanel>
 
-            <!--<StackPanel Grid.Column="0" Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        x:Name="Selectors">-->
-            <!--Style="{StaticResource ComboBoxViewStyle}"-->
-            <!--EditValue="{Binding RelativeSource={x:Static RelativeSource.Self}, Mode=OneWay, Path=SelectedItem, Converter={StaticResource EnumToStringConverter}}"-->
             <dxe:ComboBoxEdit x:Name="SelectorList"
                               Grid.Column="0" HorizontalAlignment="Right"  
                               Margin="3" IsTextEditable="False" 
@@ -106,76 +132,60 @@
                     </DataTemplate>
                 </dxe:ComboBoxEdit.ItemTemplate>
             </dxe:ComboBoxEdit>
-
-            <!--<ListBox x:Name="SelectorList" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Margin="3"
-					Style="{StaticResource SelectorViewStyle}" SelectionMode="Single"
-					GotFocus="UIElement_GotFocus"
-					SelectedIndex="{Binding ActiveViewType, ConverterParameter=SelectorList, Converter={StaticResource ListItemToViewTypeConverter}, ElementName=Scheduler, Mode=TwoWay}">
-                    <ListBoxItem Content="Day" />
-
-                    <ListBoxItem Content="Week" />
-
-                    <ListBoxItem Content="Month" />
-
-                    <ListBoxItem Content="Work Week" />
-                </ListBox>-->
-            <!--</StackPanel>-->
         </Grid>
+        
         <Grid Grid.Row="1">
-
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto" SharedSizeGroup="rightSection"/>
                 </Grid.ColumnDefinitions>
 
-                <Grid Grid.Column="0">
+                <Grid Grid.Column="0" Visibility="Visible">
+                    <!--Appointment Details Popup, Triggered on select of an appointment IsOpen="{Binding IsOpen, Mode=TwoWay}"  -->
+                    <dxe:FlyoutControl x:Name="AppointmentDetailsFlyout" 
+                                       DataContext="{Binding AppointmentDetailsPopupVM}"
+                                       IsOpen="{Binding IsOpen, Mode=TwoWay}"  StaysOpen="False"
+                                       PlacementTarget="{Binding PlacementTarget}"
+						               Style="{StaticResource AppointmentDetailsPopupFlyoutStyle}"
+						               VerticalAlignment="Center" HorizontalAlignment="Center" 
+                                       AllowMoveAnimation="True" AnimationDuration="0"  AllowOutOfScreen="False">
+                        <dxe:FlyoutControl.Settings>
+                            <dxe:FlyoutSettings ShowIndicator="True"/>
+                        </dxe:FlyoutControl.Settings>
+                    </dxe:FlyoutControl>
 
-
-
-                    <!--<dx:DXDialog x:Name="CalenderPopupControl" 
-                                       DataContext="{Binding CalenderPopupViewModel}"
-                                       d:IsHidden="True"
-                                 
-                                       Owner="{Binding this}"/>-->
-
-                    <!--<dxe:FlyoutControl x:Name="FlyoutControl" 
-						DataContext="{Binding FlyoutViewModel}"
-						PlacementTarget="{Binding ElementName=Scheduler}" 
-						StaysOpen="True"
-						IsOpen="{Binding IsOpen, Mode=TwoWay}" 
-						Style="{StaticResource Right}"
-						AllowMoveAnimation="True" />-->
-
+                    <!--Scheduler -->
                     <dxsch:SchedulerControl x:Name="Scheduler" 
 						                    Margin="3" 
-						                    VerticalAlignment="Stretch"
+						                    VerticalAlignment="Stretch" 
 						                    ActiveViewType="{Binding Path=SelectedCalenderView, Mode=OneWay, Converter={StaticResource CalenderViewToSchedulerViewConverter}}"
 						                    Visibility="{Binding Path=IsAgendaViewActive, Mode=OneWay, Converter={StaticResource InvertBoolToVisibilityConverter}}"
-                                            SelectedAppointmentsBindable="{Binding Path=SelectedAppointments, Mode=TwoWay}"
 						                    EditAppointmentFormShowing="Scheduler_OnEditAppointmentFormShowing"
+                                            MouseLeftButtonUp="Scheduler_MouseLeftButtonUp"
 						                    GotFocus="UIElement_GotFocus">
 
+                        <dxsch:SchedulerControl.AppointmentMenuCustomizations>
+                            <!--To text API .ICS export-->
+                            <dxb:BarButtonItem Content="Send Invitation"
+                                               ItemClick="BarButtonItem_ItemClick">
+                            </dxb:BarButtonItem>
+                        </dxsch:SchedulerControl.AppointmentMenuCustomizations>
 
-                        <!--ResourceId="ResourceId" 
-												                      Label="LabelId" 
-												                      Status="StatusId"-->
-                        <!--SelectedAppointmentsBindable="{Binding FlyoutViewModel.SelectedAppointments}"-->
                         <dxsch:SchedulerControl.Storage>
                             <dxsch:SchedulerStorage RemindersCheckInterval="1000" 
                                                     AppointmentsChanged="SchedulerStorage_AppointmentsChanged" 
-								                    AppointmentsDeleted="SchedulerStorage_OnAppointmentsDeleted"
+								                    AppointmentDeleting="SchedulerStorage_AppointmentDeleting"
                                                     ReminderAlert="SchedulerStorage_ReminderAlert"
-                                                    >
+                                                    FilterAppointment="SchedulerStorage_FilterAppointment">
                                 <dxsch:SchedulerStorage.AppointmentStorage>
-                                    <dxsch:AppointmentStorage DataSource="{Binding AppointmentCollection}">
+                                    <dxsch:AppointmentStorage DataSource="{Binding AppointmentCollection, Mode=OneWay}">
                                         <dxsch:AppointmentStorage.Mappings>
                                             <dxsch:AppointmentMapping AppointmentId="Id" 
 												                      Start="StartDateTime" 
 												                      End="EndDateTime"
 												                      Subject="Subject"
 												                      Location="Location"
-												                   
 												                      Description="Description"
 												                      ReminderInfo="ReminderInfo" />
                                         </dxsch:AppointmentStorage.Mappings>
@@ -196,12 +206,13 @@
                                 </dxsch:SchedulerStorage.ResourceStorage>
                             </dxsch:SchedulerStorage>
                         </dxsch:SchedulerControl.Storage>
-                    
                     </dxsch:SchedulerControl>
 
-                    <dxg:GridControl HorizontalAlignment="Stretch"  
-                                     VerticalAlignment="Stretch" 
+                    <!--Agenda View-->
+                    <dxg:GridControl Name="SchedulerAgenda" 
+                                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                      AutoGenerateColumns="None"
+                                     CustomRowFilter="GridControl_CustomRowFilter"
                                      Visibility="{Binding Path=IsAgendaViewActive, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                                      ItemsSource="{Binding AppointmentCollection}">
                         <dxg:GridControl.Columns>
@@ -214,14 +225,14 @@
                             <dxg:TableView AutoWidth="True"/>
                         </dxg:GridControl.View>
                     </dxg:GridControl>
-
                 </Grid>
+                
+                <!--Date navigator and calendar selection-->
                 <Grid Grid.Column="1">
-
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto" MaxHeight="300"/>
                         </Grid.RowDefinitions>
 
                         <Grid Grid.Row="0" >
@@ -232,59 +243,56 @@
                             </dxe:DateNavigator>
                         </Grid>
                         <Grid Grid.Row="1" >
-
                             <dxn:NavBarControl x:Name="calenderNavBar" HorizontalAlignment="Stretch">
                                 <dxn:NavBarControl.View>
                                     <dxn:ExplorerBarView/>
                                 </dxn:NavBarControl.View>
-                                <dxn:NavBarGroup Header="Calenders">
-                                    <ListBox ItemsSource="{Binding CalenderCollection, Mode=OneWay}" 
-                                             VerticalAlignment="Stretch" HorizontalAlignment="Stretch" 
-                                             BorderThickness="0">
-                                        <!--MouseDoubleClick="ListBox_MouseDoubleClick" SelectionMode="Multiple"-->
-
-                                        <ListBox.ItemContainerStyle>
-                                            <Style TargetType="{x:Type ListBoxItem}">
-                                                <!--<Setter Property="IsSelected" Value="{Binding IsSelected}"/>-->
-                                                <EventSetter Event="MouseDoubleClick" Handler="CalendersListBox_MouseDoubleClick" />
+                                <dxn:NavBarGroup Header="Calenders" IsExpanded="True">
+                                    <TreeView  ItemsSource="{Binding UserCollection}" 
+                                               Background="Transparent">
+                                        <TreeView.ItemContainerStyle>
+                                            <Style TargetType="{x:Type TreeViewItem}">
+                                                <EventSetter Event="MouseDoubleClick" Handler="OnUserCalendars_DoubleClick" />
                                             </Style>
-                                        </ListBox.ItemContainerStyle>
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <CheckBox IsChecked="{Binding IsSelected}"/>
-                                                    <Rectangle Fill="{Binding BackgroundColor}"  Height="20" Width="20" RadiusX="10" RadiusY="10"/>
-                                                    <TextBlock Text="{Binding Summary}" FontSize="15" Foreground="Black" Margin="4,0,0,0"/>
-                                                </StackPanel>
+                                        </TreeView.ItemContainerStyle>
+                                        <TreeView.Resources>
+                                            <HierarchicalDataTemplate DataType="{x:Type uiModel:UserInfoUI}"
+                                                                      ItemsSource="{Binding Calendars}">
+                                                <Grid HorizontalAlignment="Stretch">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" Tag="CheckBox"/>
+                                                        <ColumnDefinition Width="Auto" Tag="Color"/>
+                                                        <ColumnDefinition Tag="Name"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <CheckBox  Grid.Column="0" IsChecked="{Binding Path=IsSelected}"/>
+                                                    <Rectangle Grid.Column="1" Fill="{Binding Path=BackgroundColor}"  Height="20" Width="20" RadiusX="10" RadiusY="10"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Path=Username}" FontSize="15" Foreground="Black" Margin="4,0,0,0"/>
+                                                </Grid>
+                                            </HierarchicalDataTemplate>
+                                            <DataTemplate DataType="{x:Type uiModel:CalenderUI}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" Tag="CheckBox"/>
+                                                        <ColumnDefinition Width="Auto" Tag="Color"/>
+                                                        <ColumnDefinition Tag="Name"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <CheckBox  Grid.Column="0" IsChecked="{Binding Path=IsSelected}"/>
+                                                    <Rectangle Grid.Column="1" Fill="{Binding Path=BackgroundColor}"  Height="20" Width="20" RadiusX="10" RadiusY="10"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Path=Summary }" FontSize="15" Foreground="Black" Margin="4,0,0,0"/>
+                                                </Grid>
                                             </DataTemplate>
-                                        </ListBox.ItemTemplate>
+                                        </TreeView.Resources>
+                                    </TreeView>
 
-                                    </ListBox>
+                                    <!--New calendar pop up invoker-->
                                     <Button Content="New Calender" HorizontalAlignment="Stretch" 
                                             Command="{Binding CreateNewCalenderUICommand}" CommandParameter="null"/>
                                 </dxn:NavBarGroup>
                             </dxn:NavBarControl>
-
-                            <!--<StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
-								<Label Width="auto" Content="Calender" HorizontalAlignment="Stretch" />
-                                <dxe:ListBoxEdit >
-									<Label Width="auto" Content="Birthday" HorizontalAlignment="Stretch" />
-									<Label Width="auto" Content="Party" HorizontalAlignment="Stretch" />
-									<Label Width="auto" Content="Visit" HorizontalAlignment="Stretch" />
-								</dxe:ListBoxEdit >
-                            </StackPanel>-->
                         </Grid>
-
                     </Grid>
-
-
                 </Grid>
             </Grid>
-
-
-
-
-
         </Grid>
     </Grid>
 
